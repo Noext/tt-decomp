@@ -49,11 +49,12 @@ int ps2_memory_init(void)
                 host_last_error());
         return 0;
     }
-    if (!map_low(0) || !map_low(0x20000000) || !map_low(0x30000000)) {
-        fprintf(stderr, "ps2_memory_init: can't map PS2 RAM at its own addresses from 0x%08X (error %lu)\n",
-                PS2_LOW_VIEW, host_last_error());
-        return 0;
-    }
+    /* The low views are a convenience: the game's own data is reached through 0x08000000 and its
+       two mirrors. A host that cannot spare 0x00400000-0x02000000 (a non-PIE binary or the loader
+       may hold it) keeps working without them. */
+    if (!map_low(0) || !map_low(0x20000000) || !map_low(0x30000000))
+        fprintf(stderr, "ps2_memory_init: no low view (0x%08X); using the canonical addresses only\n",
+                PS2_LOW_VIEW);
     /* Fixed memory at its PS2 address: in the host's reservation (the wasm core's linear memory),
        else free space; if something else holds it, host_mem_commit's log line says what. */
     if (!host_mem_commit(PS2_SCRATCHPAD, 0x4000) || !host_mem_commit(0x10000000, 0x10000)

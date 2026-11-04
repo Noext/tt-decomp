@@ -9,6 +9,9 @@
 #include "ps2float.h"
 
 #define GPR(n) ps2.gpr[n].d[0]
+
+/* A `syscall` in recompiled code (port/hle/kernel.c dispatches it). */
+void hle_syscall(uint32_t number);
 #define UW(n) ((uint32_t)ps2.gpr[n].d[0])
 #define SW(n) ((int32_t)ps2.gpr[n].d[0])
 #define S32(x) ((uint64_t)(int64_t)(int32_t)(x)) /* 32-bit results are sign-extended */

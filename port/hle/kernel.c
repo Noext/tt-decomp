@@ -47,13 +47,15 @@ typedef struct {
 
 /* The thread's entry is a guest address (the game passes one to CreateThread). The host code that
    runs it is resolved separately: a recompiled function lives at a host address the linker chose,
-   not at the guest address the game's call site names. */
-typedef uint64_t (*guest_entry_fn)(void);
+   not at the guest address the game's call site names. Its real signature is the port's uniform
+   eight-argument form (recomp.py writes every wrapper that way), whatever the game declared. */
+typedef uint32_t (*guest_entry_fn)(uint32_t, uint32_t, uint32_t, uint32_t,
+                                   uint32_t, uint32_t, uint32_t, uint32_t);
 
 typedef struct Thread {
     int used, status, priority, init_priority;
     uint32_t entry;                       /* the guest address (ThreadParam.entry) */
-    guest_entry_fn host_entry;            /* what to call on the host, resolved by the host */
+    guest_entry_fn host_entry;            /* what to call on the host, resolved by address */
     uint32_t stack, stack_size, gp, attr, option, arg;
     int wait, wait_id, wait_result, wakeup_count;
     int64_t order;
@@ -156,7 +158,7 @@ static void thread_entry(void)
     Thread *t = current;
     if (t->host_entry) {
         ps2_recomp_enter();
-        t->host_entry();
+        t->host_entry(0, 0, 0, 0, 0, 0, 0, 0);
     }
     t->status = TS_DORMANT;
     current = NULL;
@@ -363,7 +365,7 @@ int iReferSemaStatus(int id, SemaParam *info) { return ReferSemaStatus(id, info)
 
 /* ---- threads ---- */
 /* Resolved by the host build: the host function for a guest entry address, or NULL. */
-extern guest_entry_fn hle_resolve_entry(uint32_t guest_address);
+extern guest_entry_fn *hle_resolve_entry(uint32_t guest_address);
 
 int CreateThread(ThreadParam *p)
 {
@@ -598,4 +600,12 @@ void kernel_run(uint32_t entry)
     int id = CreateThread(&p);
     StartThread(id, NULL);
     reschedule();
+}
+
+/* A recompiled `syscall 0`: dispatch the number the SDK left in $v1. Only the calls the port
+   implements do anything; the rest are logged once and return 0, as the stubs do. */
+void hle_syscall(uint32_t number)
+{
+    (void)number;
+    hle_log("syscall %u raised in recompiled code\n", number);
 }

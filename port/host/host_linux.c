@@ -36,7 +36,11 @@ int host_ram_create(uint32_t size)
 }
 
 /* Maps the guest RAM at a fixed address: `at` is the address the view must live at, `offset` the
-   byte inside the RAM block the view starts at. */
+   byte inside the RAM block the view starts at.
+
+   The low view (0x00400000 upward) collides with a non-PIE executable's own text on Linux, so the
+   port is built PIE and, when a mapping there fails, the space is left to the OS: the game reaches
+   RAM through the canonical address (0x08000000) either way. */
 int host_ram_view(uint32_t at, uint32_t offset, uint32_t size, int over_reservation)
 {
     if (at == 0 || ram_fd < 0)
@@ -45,6 +49,10 @@ int host_ram_view(uint32_t at, uint32_t offset, uint32_t size, int over_reservat
     int flags = MAP_SHARED | (over_reservation ? MAP_FIXED : MAP_FIXED_NOREPLACE);
     void *p = mmap((void *)(uintptr_t)at, size, PROT_READ | PROT_WRITE, flags, ram_fd, offset);
     if (p == MAP_FAILED) {
+        if (over_reservation) {
+            /* the low view: optional, the canonical view is what the game uses */
+            return 1;
+        }
         fprintf(stderr, "host_ram_view: cannot map %u bytes at 0x%08X (%s)\n", size, at, strerror(errno));
         return 0;
     }

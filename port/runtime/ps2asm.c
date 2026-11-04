@@ -270,7 +270,7 @@ static const Name SIMPLE[] = {
     {"mfc1", MFC1}, {"mtc1", MTC1}, {"qmfc2", QMFC2}, {"qmtc2", QMTC2}, {"cfc2", CFC2}, {"ctc2", CTC2},
     {"lui", LUI}, {"li", LI}, {"daddu", DADDU}, {"addu", ADDU}, {"multu", MULTU},
     {"pextlw", PEXTLW}, {"pextuw", PEXTUW}, {"pcpyld", PCPYLD}, {"pcpyud", PCPYUD}, {"prot3w", PROT3W},
-    {"paddw", PADDW}, {"psubh", PSUBH}, {"pcgth", PCGTH}, {"pextlh", PEXTLH}, {"ppach", PPACH},
+    {"paddw", PADDW}, {"padduw", PADDW}, {"mtsah", NOP}, {"mtsab", NOP}, {"ctc1", NOP}, {"cfc1", NOP}, {"psubh", PSUBH}, {"pcgth", PCGTH}, {"pextlh", PEXTLH}, {"ppach", PPACH},
     {"psraw", PSRAW}, {"pmulth", PMULTH}, {"pmfhi", PMFHI}, {"pmflo", PMFLO}, {"pcpyh", PCPYH},
     {"pand", PAND}, {"pnor", PNOR}, {"pxor", PXOR}, {"psubb", PSUBB}, {"psubw", PSUBW}, {"paddh", PADDH},
     {"pminh", PMINH}, {"pmaxh", PMAXH}, {"ppacb", PPACB},

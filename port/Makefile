@@ -4,10 +4,11 @@ CC      ?= clang
 CFLAGS  := -O2 -g -D_GNU_SOURCE -DPS2_HOST_FLAT_MEMORY \
            -I gs -I runtime -I hle -I include -I host
 LDFLAGS := -lm
+# PIE: the guest RAM needs 0x00400000-0x02000000, which a non-PIE binary would take.
 
 SRC := runtime/vu0_interp.c runtime/ps2asm.c runtime/memory.c \
        gs/gs.c gs/memory.c hle/vif.c hle/kernel.c hle/syscalls.c \
-       host/host_linux.c host/port_glue.c host/boot_main.c
+       host/host_linux.c host/port_glue.c host/boot_main.c hle/entry_table.c
 OBJ := $(SRC:.c=.o)
 
 all: bootport

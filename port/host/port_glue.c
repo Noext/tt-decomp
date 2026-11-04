@@ -48,7 +48,5 @@ void graphics_gif_feed(const void *p, unsigned size) { (void)p; (void)size; }
 uint32_t gs_presented_frames;
 uint64_t kernel_vsync_count;
 uint64_t host_cycles(void) { return (uint64_t)(host_wall_seconds() * 147456000.0); }
-void ps2_recomp_enter(void) { if (!ps2.gpr[29].d[0]) ps2.gpr[29].d[0] = 0x00100000u; }
 
 /* The kernel resolves a guest entry through this name. */
-uint64_t hle_resolve_entry(uint32_t guest_address) { return host_entry_call(guest_address); }

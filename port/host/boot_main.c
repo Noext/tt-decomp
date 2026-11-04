@@ -16,6 +16,7 @@
 #include "../runtime/ps2asm.h"
 
 void kernel_init(void);
+uint64_t hle_resolve_entry(uint32_t guest);
 void kernel_run(uint32_t entry);
 int ps2_memory_init(void);
 double host_wall_seconds(void);
@@ -37,6 +38,7 @@ int main(int argc, char **argv)
         if (!strcmp(argv[i], "--entry"))
             entry = (uint32_t)strtoul(argv[i + 1], NULL, 0);
 
+    setvbuf(stdout, NULL, _IONBF, 0);
     printf("mapping the PS2 address space...\n");
     if (!ps2_memory_init()) {
         fprintf(stderr, "cannot map the PS2 address space\n");
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
 
     memset(&ps2, 0, sizeof ps2);
     kernel_init();
+    printf("entry table ready\n");
     printf("running...\n");
     fflush(stdout);
     kernel_run(entry);

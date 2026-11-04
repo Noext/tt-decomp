@@ -19,6 +19,7 @@ options:
   cache_path: build/splat/.splat_cache
   symbol_addrs_path:
     - config/symbol_addrs.txt
+    - config/syscalls_eu.txt
   undefined_funcs_auto_path: build/splat/undefined_funcs_auto.txt
   undefined_syms_auto_path: build/splat/undefined_syms_auto.txt
 

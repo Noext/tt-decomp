@@ -204,24 +204,26 @@ def m2c_draft(addr):
 
 
 def ask(prompt, model, effort, session=None):
-    cmd = ["claude", "-p", "--model", model, "--effort", effort, "--output-format", "json", "--tools", "",
-           "--strict-mcp-config", "--system-prompt", SYSTEM]
+    # This machine runs the model through `claudex` (opencode-go), whose base URL and token come
+    # from ~/.claude/settings.json. `claudex` is a zsh alias, so the script it aliases is run here.
+    cmd = ["/root/claudex", "-p", "--model", model]
+    if effort and effort != "auto":
+        cmd += ["--effort", effort]
+    cmd += ["--output-format", "json", "--tools", "", "--strict-mcp-config", "--system-prompt", SYSTEM]
     if session:
         cmd += ["--resume", session]
-    # When launched from inside a Claude Code session, its CLAUDE_*/ANTHROPIC_* variables would
-    # point the child CLI at the parent's credentials; use the user's own CLI login instead.
-    env = {k: v for k, v in os.environ.items() if not k.upper().startswith(("CLAUDE", "ANTHROPIC"))}
-    # A login of its own: sharing ~/.claude with the Claude app makes each one's token refresh
-    # invalidate the other's. Log in once with CLAUDE_CONFIG_DIR set to this directory.
-    env["CLAUDE_CONFIG_DIR"] = CLI_CONFIG
+    # Keep the parent session's CLAUDE_*/ANTHROPIC_* out of the child: claudex sets what it needs.
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith(("CLAUDE",))}
     t0 = time.time()
     res = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding="utf-8", timeout=900, env=env)
+    # claudex prints one warning line to stderr; stdout is the JSON result.
+    out = res.stdout.strip()
     try:
-        data = json.loads(res.stdout)
+        data = json.loads(out)
     except json.JSONDecodeError:
-        raise RuntimeError(f"claude CLI failed: {res.stdout[:300]} {res.stderr[:300]}")
+        raise RuntimeError(f"claudex failed: {out[:300]} {res.stderr[:300]}")
     if data.get("is_error"):
-        raise RuntimeError(f"claude CLI error: {data.get('result')}")
+        raise RuntimeError(f"claudex error: {data.get('result')}")
     usage = data.get("usage") or {}
     return {
         "text": data.get("result", ""),
@@ -244,7 +246,11 @@ def check(addr, path):
 
 def mnemonics(addr):
     out = []
-    for line in match.gnu_asm(addr).splitlines():
+    try:
+        text = match.gnu_asm(addr)
+    except SystemExit:
+        return out          # a source named for an address this build does not have
+    for line in text.splitlines():
         m = re.search(r"\*/\s+(\S+)", line)
         if m:
             out.append(m.group(1))
@@ -532,7 +538,7 @@ def main():
     p.add_argument("--max-bytes", type=int, default=160); p.add_argument("--seed", type=int, default=1)
     p.add_argument("--order", choices=["random", "impact", "small"], default="impact")
     r = sub.add_parser("run"); r.add_argument("name"); r.add_argument("--attempts", type=int, default=4)
-    r.add_argument("--model", default="claude-sonnet-5")
+    r.add_argument("--model", default="opencode-go/deepseek-v4.1-flash")
     r.add_argument("--effort", default="auto", choices=["auto", "low", "medium", "high", "xhigh", "max"])
     r.add_argument("--retry-deferred", action="store_true", help="also retry functions the auto policy gave up on")
     r.add_argument("--jobs", type=int, default=1, help="functions worked on at the same time")

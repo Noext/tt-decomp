@@ -23,6 +23,8 @@ from pair_sources import load_words, splat_functions, COMPILER  # noqa: E402
 
 R_MIPS_26 = 4
 R_MIPS_32 = 2
+R_MIPS_HI16 = 5
+R_MIPS_LO16 = 6
 
 
 def object_text_relocs(path, extra_syms=None):
@@ -54,26 +56,29 @@ def object_text_relocs(path, extra_syms=None):
             strtab = S[symtab[6]][4]
             for k in range(s[5] // 8):
                 r_off, r_info = struct.unpack_from('<II', d, s[4] + k * 8)
-                if r_info & 0xFF not in (R_MIPS_26, R_MIPS_32):
+                rtype = r_info & 0xFF
+                if rtype not in (R_MIPS_26, R_MIPS_32, R_MIPS_HI16, R_MIPS_LO16):
                     continue
                 sym = r_info >> 8
                 st_name, = struct.unpack_from('<I', d, symtab[4] + sym * 16)
                 name = d[strtab + st_name:d.index(b'\0', strtab + st_name)].decode('latin1')
                 if ti2 == ti:
-                    relocs[r_off // 4] = name
+                    relocs[r_off // 4] = (name, rtype)
                 else:
                     data[(names[ti2], r_off // 4)] = name
     return words, relocs, data
 
 
 def resolve(words, relocs):
-    """Apply the object's R_MIPS_26 relocations as the linker would (the symbol's own address)."""
+    """Apply the object's relocations as the linker would: 26-bit targets, and the %hi/%lo pair a
+    symbol address is loaded through."""
     out = list(words)
-    for k, sym in relocs.items():
+    for k, rel in relocs.items():
+        sym, rtype = rel if isinstance(rel, tuple) else (rel, R_MIPS_26)
         if k >= len(out):
             continue
         addr = None
-        m = re.fullmatch(r'func_([0-9A-Fa-f]{8})', sym)
+        m = re.fullmatch(r'(?:func|D|jtbl)_([0-9A-Fa-f]{8})', sym)
         if m:
             addr = int(m.group(1), 16)
         else:
@@ -82,8 +87,14 @@ def resolve(words, relocs):
                 addr = symbols.address_of(sym)
             except Exception:
                 addr = None
-        if addr is not None:
+        if addr is None:
+            continue
+        if rtype == R_MIPS_26:
             out[k] = (out[k] & 0xFC000000) | ((addr >> 2) & 0x3FFFFFF)
+        elif rtype == R_MIPS_HI16:
+            out[k] = (out[k] & 0xFFFF0000) | (((addr + 0x8000) >> 16) & 0xFFFF)
+        elif rtype == R_MIPS_LO16:
+            out[k] = (out[k] & 0xFFFF0000) | (addr & 0xFFFF)
     return out
 
 

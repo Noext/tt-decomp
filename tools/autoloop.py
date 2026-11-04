@@ -50,6 +50,9 @@ Conventions:
   default arguments): it is compiled as C++, but tools also parse it as C.
 - Never use goto unless nothing else works.
 
+You have NO tools. Do not call anything, do not use any markup other than the one ```cpp block.
+Reply with the code only.
+
 {project.knowledge()}"""
 
 

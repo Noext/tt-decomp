@@ -23,3 +23,8 @@ ps2_entry_fn *hle_resolve_entry(uint32_t guest)
     }
     return 0;
 }
+
+/* A code address as the game passes it around: the guest address, not the host function behind it.
+   The recompiled code takes function addresses for callbacks, vtables and the like; those must be
+   guest numbers, or the game reads a host pointer (64 bits, truncated) as an address. */
+uint32_t ps2_guest_code_address(uint32_t guest) { return guest; }

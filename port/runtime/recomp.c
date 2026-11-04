@@ -10,12 +10,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static ps2_q128 stack[1 << 16]; /* 1 MB */
+/* The thread's stack. It lives in GUEST memory, not on the host: a recompiled function stores
+   through ADDR(29, n), which maps a guest address to the host's view. Putting a host pointer here
+   (what the 32-bit build could do, where the two were the same number) hands the game an address
+   it then reads as data — the allocator searched for it and never found it. */
+#define GUEST_STACK_TOP 0x01F00000u
 
 void ps2_recomp_enter(void)
 {
     if (!GPR(29))
-        GPR(29) = (uint32_t)(uintptr_t)&stack[sizeof stack / sizeof *stack];
+        GPR(29) = GUEST_STACK_TOP;
 }
 
 void ps2_recomp_bad_jump(const char *func, uint32_t target)

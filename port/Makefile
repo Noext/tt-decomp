@@ -8,7 +8,7 @@ CC      ?= clang
 # PIE: the guest RAM needs 0x00400000-0x02000000 for its low view, which a non-PIE binary would take.
 CFLAGS  := -O2 -g -fPIE -D_GNU_SOURCE -DPS2_HOST_FLAT_MEMORY \
            -I gs -I runtime -I hle -I include -I host
-RCFLAGS := -O1 -w -fPIE -D_GNU_SOURCE -DPS2_HOST_FLAT_MEMORY \
+RCFLAGS := -O1 -w -fPIE -fPIC -D_GNU_SOURCE -DPS2_HOST_FLAT_MEMORY \
            -I hle -I runtime -I include -I host
 LDFLAGS := -lm
 

@@ -7,6 +7,10 @@
 
 int hle_verbose;
 
+/* The kernel's dispatch (kernel.c): every wrapper reaches it with its number. */
+void hle_syscall(uint32_t number);
+uint32_t hle_syscall_result(void);
+
 int hle_unknown_syscall(int number)
 {
     if (hle_verbose)
@@ -15,329 +19,329 @@ int hle_unknown_syscall(int number)
 }
 
 int eu_syscall_004FDB40(void) RETAIL(eu_syscall_004FDB40);
-int eu_syscall_004FDB40(void) { return hle_unknown_syscall(0); }  /* Syscall00 */
+int eu_syscall_004FDB40(void) { hle_syscall(0); return (int)hle_syscall_result(); }  /* Syscall00 */
 int eu_syscall_004FDB50(void) RETAIL(eu_syscall_004FDB50);
-int eu_syscall_004FDB50(void) { return hle_unknown_syscall(1); }  /* CreateThread */
+int eu_syscall_004FDB50(void) { hle_syscall(1); return (int)hle_syscall_result(); }  /* CreateThread */
 int eu_syscall_004FDB60(void) RETAIL(eu_syscall_004FDB60);
-int eu_syscall_004FDB60(void) { return hle_unknown_syscall(2); }  /* DeleteThread */
+int eu_syscall_004FDB60(void) { hle_syscall(2); return (int)hle_syscall_result(); }  /* DeleteThread */
 int eu_syscall_004FDB70(void) RETAIL(eu_syscall_004FDB70);
-int eu_syscall_004FDB70(void) { return hle_unknown_syscall(3); }  /* StartThread */
+int eu_syscall_004FDB70(void) { hle_syscall(3); return (int)hle_syscall_result(); }  /* StartThread */
 int eu_syscall_004FDB80(void) RETAIL(eu_syscall_004FDB80);
-int eu_syscall_004FDB80(void) { return hle_unknown_syscall(4); }  /* ExitThread */
+int eu_syscall_004FDB80(void) { hle_syscall(4); return (int)hle_syscall_result(); }  /* ExitThread */
 int eu_syscall_004FDB90(void) RETAIL(eu_syscall_004FDB90);
-int eu_syscall_004FDB90(void) { return hle_unknown_syscall(5); }  /* ExitDeleteThread */
+int eu_syscall_004FDB90(void) { hle_syscall(5); return (int)hle_syscall_result(); }  /* ExitDeleteThread */
 int eu_syscall_004FDBA0(void) RETAIL(eu_syscall_004FDBA0);
-int eu_syscall_004FDBA0(void) { return hle_unknown_syscall(6); }  /* TerminateThread */
+int eu_syscall_004FDBA0(void) { hle_syscall(6); return (int)hle_syscall_result(); }  /* TerminateThread */
 int eu_syscall_004FDBB0(void) RETAIL(eu_syscall_004FDBB0);
-int eu_syscall_004FDBB0(void) { return hle_unknown_syscall(7); }  /* iDisableDispatchThread */
+int eu_syscall_004FDBB0(void) { hle_syscall(7); return (int)hle_syscall_result(); }  /* iDisableDispatchThread */
 int eu_syscall_004FDBC0(void) RETAIL(eu_syscall_004FDBC0);
-int eu_syscall_004FDBC0(void) { return hle_unknown_syscall(8); }  /* iEnableDispatchThread */
+int eu_syscall_004FDBC0(void) { hle_syscall(8); return (int)hle_syscall_result(); }  /* iEnableDispatchThread */
 int eu_syscall_004FDBD0(void) RETAIL(eu_syscall_004FDBD0);
-int eu_syscall_004FDBD0(void) { return hle_unknown_syscall(9); }  /* Syscall09 */
+int eu_syscall_004FDBD0(void) { hle_syscall(9); return (int)hle_syscall_result(); }  /* Syscall09 */
 int eu_syscall_004FDBE0(void) RETAIL(eu_syscall_004FDBE0);
-int eu_syscall_004FDBE0(void) { return hle_unknown_syscall(10); }  /* ChangeThreadPriority */
+int eu_syscall_004FDBE0(void) { hle_syscall(10); return (int)hle_syscall_result(); }  /* ChangeThreadPriority */
 int eu_syscall_004FDBF0(void) RETAIL(eu_syscall_004FDBF0);
-int eu_syscall_004FDBF0(void) { return hle_unknown_syscall(11); }  /* iChangeThreadPriority */
+int eu_syscall_004FDBF0(void) { hle_syscall(11); return (int)hle_syscall_result(); }  /* iChangeThreadPriority */
 int eu_syscall_004FDC00(void) RETAIL(eu_syscall_004FDC00);
-int eu_syscall_004FDC00(void) { return hle_unknown_syscall(12); }  /* RotateThreadReadyQueue */
+int eu_syscall_004FDC00(void) { hle_syscall(12); return (int)hle_syscall_result(); }  /* RotateThreadReadyQueue */
 int eu_syscall_004FDC10(void) RETAIL(eu_syscall_004FDC10);
-int eu_syscall_004FDC10(void) { return hle_unknown_syscall(13); }  /* iRotateThreadReadyQueue */
+int eu_syscall_004FDC10(void) { hle_syscall(13); return (int)hle_syscall_result(); }  /* iRotateThreadReadyQueue */
 int eu_syscall_004FDC20(void) RETAIL(eu_syscall_004FDC20);
-int eu_syscall_004FDC20(void) { return hle_unknown_syscall(14); }  /* ReleaseThreadWait */
+int eu_syscall_004FDC20(void) { hle_syscall(14); return (int)hle_syscall_result(); }  /* ReleaseThreadWait */
 int eu_syscall_004FDC30(void) RETAIL(eu_syscall_004FDC30);
-int eu_syscall_004FDC30(void) { return hle_unknown_syscall(15); }  /* ReleaseWaitThread */
+int eu_syscall_004FDC30(void) { hle_syscall(15); return (int)hle_syscall_result(); }  /* ReleaseWaitThread */
 int eu_syscall_004FDC50(void) RETAIL(eu_syscall_004FDC50);
-int eu_syscall_004FDC50(void) { return hle_unknown_syscall(16); }  /* iSuspendThread */
+int eu_syscall_004FDC50(void) { hle_syscall(16); return (int)hle_syscall_result(); }  /* iSuspendThread */
 int eu_syscall_004FDC40(void) RETAIL(eu_syscall_004FDC40);
-int eu_syscall_004FDC40(void) { return hle_unknown_syscall(16); }  /* iSuspendThread */
+int eu_syscall_004FDC40(void) { hle_syscall(16); return (int)hle_syscall_result(); }  /* iSuspendThread */
 int eu_syscall_004FDC60(void) RETAIL(eu_syscall_004FDC60);
-int eu_syscall_004FDC60(void) { return hle_unknown_syscall(17); }  /* ResumeThread */
+int eu_syscall_004FDC60(void) { hle_syscall(17); return (int)hle_syscall_result(); }  /* ResumeThread */
 int eu_syscall_004FDC70(void) RETAIL(eu_syscall_004FDC70);
-int eu_syscall_004FDC70(void) { return hle_unknown_syscall(18); }  /* SuspendThread */
+int eu_syscall_004FDC70(void) { hle_syscall(18); return (int)hle_syscall_result(); }  /* SuspendThread */
 int eu_syscall_004FDC80(void) RETAIL(eu_syscall_004FDC80);
-int eu_syscall_004FDC80(void) { return hle_unknown_syscall(18); }  /* SuspendThread */
+int eu_syscall_004FDC80(void) { hle_syscall(18); return (int)hle_syscall_result(); }  /* SuspendThread */
 int eu_syscall_004FDC90(void) RETAIL(eu_syscall_004FDC90);
-int eu_syscall_004FDC90(void) { return hle_unknown_syscall(19); }  /* GetThreadId */
+int eu_syscall_004FDC90(void) { hle_syscall(19); return (int)hle_syscall_result(); }  /* GetThreadId */
 int eu_syscall_004FDCA0(void) RETAIL(eu_syscall_004FDCA0);
-int eu_syscall_004FDCA0(void) { return hle_unknown_syscall(20); }  /* ReferThreadStatus */
+int eu_syscall_004FDCA0(void) { hle_syscall(20); return (int)hle_syscall_result(); }  /* ReferThreadStatus */
 int eu_syscall_004FDCB0(void) RETAIL(eu_syscall_004FDCB0);
-int eu_syscall_004FDCB0(void) { return hle_unknown_syscall(21); }  /* iReferThreadStatus */
+int eu_syscall_004FDCB0(void) { hle_syscall(21); return (int)hle_syscall_result(); }  /* iReferThreadStatus */
 int eu_syscall_004FDCC0(void) RETAIL(eu_syscall_004FDCC0);
-int eu_syscall_004FDCC0(void) { return hle_unknown_syscall(22); }  /* SleepThread */
+int eu_syscall_004FDCC0(void) { hle_syscall(22); return (int)hle_syscall_result(); }  /* SleepThread */
 int eu_syscall_004FDCD0(void) RETAIL(eu_syscall_004FDCD0);
-int eu_syscall_004FDCD0(void) { return hle_unknown_syscall(23); }  /* WakeupThread */
+int eu_syscall_004FDCD0(void) { hle_syscall(23); return (int)hle_syscall_result(); }  /* WakeupThread */
 int eu_syscall_004FDD60(void) RETAIL(eu_syscall_004FDD60);
-int eu_syscall_004FDD60(void) { return hle_unknown_syscall(32); }  /* iGetThreadPriority */
+int eu_syscall_004FDD60(void) { hle_syscall(32); return (int)hle_syscall_result(); }  /* iGetThreadPriority */
 int eu_syscall_004FDD70(void) RETAIL(eu_syscall_004FDD70);
-int eu_syscall_004FDD70(void) { return hle_unknown_syscall(33); }  /* SetupThread */
+int eu_syscall_004FDD70(void) { hle_syscall(33); return (int)hle_syscall_result(); }  /* SetupThread */
 int eu_syscall_004FDD80(void) RETAIL(eu_syscall_004FDD80);
-int eu_syscall_004FDD80(void) { return hle_unknown_syscall(34); }  /* SetupHeap */
+int eu_syscall_004FDD80(void) { hle_syscall(34); return (int)hle_syscall_result(); }  /* SetupHeap */
 int eu_syscall_00100228(void) RETAIL(eu_syscall_00100228);
-int eu_syscall_00100228(void) { return hle_unknown_syscall(35); }  /* EndThread */
+int eu_syscall_00100228(void) { hle_syscall(35); return (int)hle_syscall_result(); }  /* EndThread */
 int eu_syscall_004FDD90(void) RETAIL(eu_syscall_004FDD90);
-int eu_syscall_004FDD90(void) { return hle_unknown_syscall(35); }  /* EndThread */
+int eu_syscall_004FDD90(void) { hle_syscall(35); return (int)hle_syscall_result(); }  /* EndThread */
 int eu_syscall_004FDDA0(void) RETAIL(eu_syscall_004FDDA0);
-int eu_syscall_004FDDA0(void) { return hle_unknown_syscall(36); }  /* CreateSema */
+int eu_syscall_004FDDA0(void) { hle_syscall(36); return (int)hle_syscall_result(); }  /* CreateSema */
 int eu_syscall_004FDDB0(void) RETAIL(eu_syscall_004FDDB0);
-int eu_syscall_004FDDB0(void) { return hle_unknown_syscall(37); }  /* DeleteSema */
+int eu_syscall_004FDDB0(void) { hle_syscall(37); return (int)hle_syscall_result(); }  /* DeleteSema */
 int eu_syscall_004FDDD0(void) RETAIL(eu_syscall_004FDDD0);
-int eu_syscall_004FDDD0(void) { return hle_unknown_syscall(39); }  /* iSignalSema */
+int eu_syscall_004FDDD0(void) { hle_syscall(39); return (int)hle_syscall_result(); }  /* iSignalSema */
 int eu_syscall_004FDDE0(void) RETAIL(eu_syscall_004FDDE0);
-int eu_syscall_004FDDE0(void) { return hle_unknown_syscall(40); }  /* WaitSema */
+int eu_syscall_004FDDE0(void) { hle_syscall(40); return (int)hle_syscall_result(); }  /* WaitSema */
 int eu_syscall_004FDDF0(void) RETAIL(eu_syscall_004FDDF0);
-int eu_syscall_004FDDF0(void) { return hle_unknown_syscall(41); }  /* PollSema */
+int eu_syscall_004FDDF0(void) { hle_syscall(41); return (int)hle_syscall_result(); }  /* PollSema */
 int eu_syscall_004FDE10(void) RETAIL(eu_syscall_004FDE10);
-int eu_syscall_004FDE10(void) { return hle_unknown_syscall(43); }  /* ReferSemaStatus */
+int eu_syscall_004FDE10(void) { hle_syscall(43); return (int)hle_syscall_result(); }  /* ReferSemaStatus */
 int eu_syscall_004FDE30(void) RETAIL(eu_syscall_004FDE30);
-int eu_syscall_004FDE30(void) { return hle_unknown_syscall(45); }  /* iDeleteSema */
+int eu_syscall_004FDE30(void) { hle_syscall(45); return (int)hle_syscall_result(); }  /* iDeleteSema */
 int eu_syscall_004FDE50(void) RETAIL(eu_syscall_004FDE50);
-int eu_syscall_004FDE50(void) { return hle_unknown_syscall(47); }  /* GetOsdConfigParam */
+int eu_syscall_004FDE50(void) { hle_syscall(47); return (int)hle_syscall_result(); }  /* GetOsdConfigParam */
 int eu_syscall_004FDE60(void) RETAIL(eu_syscall_004FDE60);
-int eu_syscall_004FDE60(void) { return hle_unknown_syscall(48); }  /* GetMemorySize */
+int eu_syscall_004FDE60(void) { hle_syscall(48); return (int)hle_syscall_result(); }  /* GetMemorySize */
 int eu_syscall_004FDE80(void) RETAIL(eu_syscall_004FDE80);
-int eu_syscall_004FDE80(void) { return hle_unknown_syscall(50); }  /* GsPutIMR */
+int eu_syscall_004FDE80(void) { hle_syscall(50); return (int)hle_syscall_result(); }  /* GsPutIMR */
 int eu_syscall_004FDE90(void) RETAIL(eu_syscall_004FDE90);
-int eu_syscall_004FDE90(void) { return hle_unknown_syscall(51); }  /* SetVSyncFlag */
+int eu_syscall_004FDE90(void) { hle_syscall(51); return (int)hle_syscall_result(); }  /* SetVSyncFlag */
 int eu_syscall_004FDEB0(void) RETAIL(eu_syscall_004FDEB0);
-int eu_syscall_004FDEB0(void) { return hle_unknown_syscall(53); }  /* Syscall35 */
+int eu_syscall_004FDEB0(void) { hle_syscall(53); return (int)hle_syscall_result(); }  /* Syscall35 */
 int eu_syscall_004FDED0(void) RETAIL(eu_syscall_004FDED0);
-int eu_syscall_004FDED0(void) { return hle_unknown_syscall(55); }  /* SetOsdConfigParam2 */
+int eu_syscall_004FDED0(void) { hle_syscall(55); return (int)hle_syscall_result(); }  /* SetOsdConfigParam2 */
 int eu_syscall_004FDEF0(void) RETAIL(eu_syscall_004FDEF0);
-int eu_syscall_004FDEF0(void) { return hle_unknown_syscall(57); }  /* ConnectMcaDB */
+int eu_syscall_004FDEF0(void) { hle_syscall(57); return (int)hle_syscall_result(); }  /* ConnectMcaDB */
 int eu_syscall_004FDF10(void) RETAIL(eu_syscall_004FDF10);
-int eu_syscall_004FDF10(void) { return hle_unknown_syscall(59); }  /* Syscall3B */
+int eu_syscall_004FDF10(void) { hle_syscall(59); return (int)hle_syscall_result(); }  /* Syscall3B */
 int eu_syscall_004FDF20(void) RETAIL(eu_syscall_004FDF20);
-int eu_syscall_004FDF20(void) { return hle_unknown_syscall(60); }  /* Syscall3C */
+int eu_syscall_004FDF20(void) { hle_syscall(60); return (int)hle_syscall_result(); }  /* Syscall3C */
 int eu_syscall_004FDF30(void) RETAIL(eu_syscall_004FDF30);
-int eu_syscall_004FDF30(void) { return hle_unknown_syscall(61); }  /* Syscall3D */
+int eu_syscall_004FDF30(void) { hle_syscall(61); return (int)hle_syscall_result(); }  /* Syscall3D */
 int eu_syscall_004FDF40(void) RETAIL(eu_syscall_004FDF40);
-int eu_syscall_004FDF40(void) { return hle_unknown_syscall(62); }  /* iFlushCache */
+int eu_syscall_004FDF40(void) { hle_syscall(62); return (int)hle_syscall_result(); }  /* iFlushCache */
 int eu_syscall_004FDF50(void) RETAIL(eu_syscall_004FDF50);
-int eu_syscall_004FDF50(void) { return hle_unknown_syscall(63); }  /* iFlushInstructionCache */
+int eu_syscall_004FDF50(void) { hle_syscall(63); return (int)hle_syscall_result(); }  /* iFlushInstructionCache */
 int eu_syscall_004FDF60(void) RETAIL(eu_syscall_004FDF60);
-int eu_syscall_004FDF60(void) { return hle_unknown_syscall(64); }  /* iFlushDataCache */
+int eu_syscall_004FDF60(void) { hle_syscall(64); return (int)hle_syscall_result(); }  /* iFlushDataCache */
 int eu_syscall_004FDF70(void) RETAIL(eu_syscall_004FDF70);
-int eu_syscall_004FDF70(void) { return hle_unknown_syscall(65); }  /* FlushCache */
+int eu_syscall_004FDF70(void) { hle_syscall(65); return (int)hle_syscall_result(); }  /* FlushCache */
 int eu_syscall_004FDF80(void) RETAIL(eu_syscall_004FDF80);
-int eu_syscall_004FDF80(void) { return hle_unknown_syscall(66); }  /* FlushInstructionCache */
+int eu_syscall_004FDF80(void) { hle_syscall(66); return (int)hle_syscall_result(); }  /* FlushInstructionCache */
 int eu_syscall_004FDFA0(void) RETAIL(eu_syscall_004FDFA0);
-int eu_syscall_004FDFA0(void) { return hle_unknown_syscall(68); }  /* EnableCache */
+int eu_syscall_004FDFA0(void) { hle_syscall(68); return (int)hle_syscall_result(); }  /* EnableCache */
 int eu_syscall_004FDFB0(void) RETAIL(eu_syscall_004FDFB0);
-int eu_syscall_004FDFB0(void) { return hle_unknown_syscall(69); }  /* DisableCache */
+int eu_syscall_004FDFB0(void) { hle_syscall(69); return (int)hle_syscall_result(); }  /* DisableCache */
 int eu_syscall_004FDFD0(void) RETAIL(eu_syscall_004FDFD0);
-int eu_syscall_004FDFD0(void) { return hle_unknown_syscall(71); }  /* iPutTLBEntry */
+int eu_syscall_004FDFD0(void) { hle_syscall(71); return (int)hle_syscall_result(); }  /* iPutTLBEntry */
 int eu_syscall_004FDFF0(void) RETAIL(eu_syscall_004FDFF0);
-int eu_syscall_004FDFF0(void) { return hle_unknown_syscall(73); }  /* iGetTLBEntry */
+int eu_syscall_004FDFF0(void) { hle_syscall(73); return (int)hle_syscall_result(); }  /* iGetTLBEntry */
 int eu_syscall_004FE000(void) RETAIL(eu_syscall_004FE000);
-int eu_syscall_004FE000(void) { return hle_unknown_syscall(74); }  /* ProbeTLBEntry */
+int eu_syscall_004FE000(void) { hle_syscall(74); return (int)hle_syscall_result(); }  /* ProbeTLBEntry */
 int eu_syscall_004FE010(void) RETAIL(eu_syscall_004FE010);
-int eu_syscall_004FE010(void) { return hle_unknown_syscall(75); }  /* iProbeTLBEntry */
+int eu_syscall_004FE010(void) { hle_syscall(75); return (int)hle_syscall_result(); }  /* iProbeTLBEntry */
 int eu_syscall_004FE020(void) RETAIL(eu_syscall_004FE020);
-int eu_syscall_004FE020(void) { return hle_unknown_syscall(76); }  /* ExpandScratchPad */
+int eu_syscall_004FE020(void) { hle_syscall(76); return (int)hle_syscall_result(); }  /* ExpandScratchPad */
 int eu_syscall_004FE030(void) RETAIL(eu_syscall_004FE030);
-int eu_syscall_004FE030(void) { return hle_unknown_syscall(77); }  /* SetMemoryMode */
+int eu_syscall_004FE030(void) { hle_syscall(77); return (int)hle_syscall_result(); }  /* SetMemoryMode */
 int eu_syscall_004FE040(void) RETAIL(eu_syscall_004FE040);
-int eu_syscall_004FE040(void) { return hle_unknown_syscall(78); }  /* GetMemoryMode */
+int eu_syscall_004FE040(void) { hle_syscall(78); return (int)hle_syscall_result(); }  /* GetMemoryMode */
 int eu_syscall_004FE050(void) RETAIL(eu_syscall_004FE050);
-int eu_syscall_004FE050(void) { return hle_unknown_syscall(79); }  /* SetCacheMode */
+int eu_syscall_004FE050(void) { hle_syscall(79); return (int)hle_syscall_result(); }  /* SetCacheMode */
 int eu_syscall_004FE060(void) RETAIL(eu_syscall_004FE060);
-int eu_syscall_004FE060(void) { return hle_unknown_syscall(80); }  /* GetCacheMode */
+int eu_syscall_004FE060(void) { hle_syscall(80); return (int)hle_syscall_result(); }  /* GetCacheMode */
 int eu_syscall_004FE070(void) RETAIL(eu_syscall_004FE070);
-int eu_syscall_004FE070(void) { return hle_unknown_syscall(81); }  /* InitTLB */
+int eu_syscall_004FE070(void) { hle_syscall(81); return (int)hle_syscall_result(); }  /* InitTLB */
 int eu_syscall_004FE080(void) RETAIL(eu_syscall_004FE080);
-int eu_syscall_004FE080(void) { return hle_unknown_syscall(82); }  /* iSyncCache */
+int eu_syscall_004FE080(void) { hle_syscall(82); return (int)hle_syscall_result(); }  /* iSyncCache */
 int eu_syscall_004FE0A0(void) RETAIL(eu_syscall_004FE0A0);
-int eu_syscall_004FE0A0(void) { return hle_unknown_syscall(84); }  /* iFlushCacheAll */
+int eu_syscall_004FE0A0(void) { hle_syscall(84); return (int)hle_syscall_result(); }  /* iFlushCacheAll */
 int eu_syscall_00509CB0(void) RETAIL(eu_syscall_00509CB0);
-int eu_syscall_00509CB0(void) { return hle_unknown_syscall(85); }  /* SpeakerInit */
+int eu_syscall_00509CB0(void) { hle_syscall(85); return (int)hle_syscall_result(); }  /* SpeakerInit */
 int eu_syscall_004FE0C0(void) RETAIL(eu_syscall_004FE0C0);
-int eu_syscall_004FE0C0(void) { return hle_unknown_syscall(86); }  /* GetKeyboardStatus */
+int eu_syscall_004FE0C0(void) { hle_syscall(86); return (int)hle_syscall_result(); }  /* GetKeyboardStatus */
 int eu_syscall_00509CD0(void) RETAIL(eu_syscall_00509CD0);
-int eu_syscall_00509CD0(void) { return hle_unknown_syscall(86); }  /* GetKeyboardStatus */
+int eu_syscall_00509CD0(void) { hle_syscall(86); return (int)hle_syscall_result(); }  /* GetKeyboardStatus */
 int eu_syscall_00509D20(void) RETAIL(eu_syscall_00509D20);
-int eu_syscall_00509D20(void) { return hle_unknown_syscall(87); }  /* SetLED */
+int eu_syscall_00509D20(void) { hle_syscall(87); return (int)hle_syscall_result(); }  /* SetLED */
 int eu_syscall_004FE0D0(void) RETAIL(eu_syscall_004FE0D0);
-int eu_syscall_004FE0D0(void) { return hle_unknown_syscall(87); }  /* SetLED */
+int eu_syscall_004FE0D0(void) { hle_syscall(87); return (int)hle_syscall_result(); }  /* SetLED */
 int eu_syscall_00509D40(void) RETAIL(eu_syscall_00509D40);
-int eu_syscall_00509D40(void) { return hle_unknown_syscall(88); }  /* GetLED */
+int eu_syscall_00509D40(void) { hle_syscall(88); return (int)hle_syscall_result(); }  /* GetLED */
 int eu_syscall_00509D60(void) RETAIL(eu_syscall_00509D60);
-int eu_syscall_00509D60(void) { return hle_unknown_syscall(89); }  /* beep */
+int eu_syscall_00509D60(void) { hle_syscall(89); return (int)hle_syscall_result(); }  /* beep */
 int eu_syscall_004FE0F0(void) RETAIL(eu_syscall_004FE0F0);
-int eu_syscall_004FE0F0(void) { return hle_unknown_syscall(89); }  /* beep */
+int eu_syscall_004FE0F0(void) { hle_syscall(89); return (int)hle_syscall_result(); }  /* beep */
 int eu_syscall_00509B80(void) RETAIL(eu_syscall_00509B80);
-int eu_syscall_00509B80(void) { return hle_unknown_syscall(90); }  /* SetAlarm */
+int eu_syscall_00509B80(void) { hle_syscall(90); return (int)hle_syscall_result(); }  /* SetAlarm */
 int eu_syscall_005074A8(void) RETAIL(eu_syscall_005074A8);
-int eu_syscall_005074A8(void) { return hle_unknown_syscall(90); }  /* SetAlarm */
+int eu_syscall_005074A8(void) { hle_syscall(90); return (int)hle_syscall_result(); }  /* SetAlarm */
 int eu_syscall_00507338(void) RETAIL(eu_syscall_00507338);
-int eu_syscall_00507338(void) { return hle_unknown_syscall(90); }  /* SetAlarm */
+int eu_syscall_00507338(void) { hle_syscall(90); return (int)hle_syscall_result(); }  /* SetAlarm */
 int eu_syscall_00507758(void) RETAIL(eu_syscall_00507758);
-int eu_syscall_00507758(void) { return hle_unknown_syscall(90); }  /* SetAlarm */
+int eu_syscall_00507758(void) { hle_syscall(90); return (int)hle_syscall_result(); }  /* SetAlarm */
 int eu_syscall_005070F0(void) RETAIL(eu_syscall_005070F0);
-int eu_syscall_005070F0(void) { return hle_unknown_syscall(90); }  /* SetAlarm */
+int eu_syscall_005070F0(void) { hle_syscall(90); return (int)hle_syscall_result(); }  /* SetAlarm */
 int eu_syscall_004FE110(void) RETAIL(eu_syscall_004FE110);
-int eu_syscall_004FE110(void) { return hle_unknown_syscall(91); }  /* iSetAlarm */
+int eu_syscall_004FE110(void) { hle_syscall(91); return (int)hle_syscall_result(); }  /* iSetAlarm */
 int eu_syscall_005077A0(void) RETAIL(eu_syscall_005077A0);
-int eu_syscall_005077A0(void) { return hle_unknown_syscall(91); }  /* iSetAlarm */
+int eu_syscall_005077A0(void) { hle_syscall(91); return (int)hle_syscall_result(); }  /* iSetAlarm */
 int eu_syscall_00509BC8(void) RETAIL(eu_syscall_00509BC8);
-int eu_syscall_00509BC8(void) { return hle_unknown_syscall(91); }  /* iSetAlarm */
+int eu_syscall_00509BC8(void) { hle_syscall(91); return (int)hle_syscall_result(); }  /* iSetAlarm */
 int eu_syscall_00507380(void) RETAIL(eu_syscall_00507380);
-int eu_syscall_00507380(void) { return hle_unknown_syscall(91); }  /* iSetAlarm */
+int eu_syscall_00507380(void) { hle_syscall(91); return (int)hle_syscall_result(); }  /* iSetAlarm */
 int eu_syscall_004FE120(void) RETAIL(eu_syscall_004FE120);
-int eu_syscall_004FE120(void) { return hle_unknown_syscall(92); }  /* CancelAlarm */
+int eu_syscall_004FE120(void) { hle_syscall(92); return (int)hle_syscall_result(); }  /* CancelAlarm */
 int eu_syscall_004FE140(void) RETAIL(eu_syscall_004FE140);
-int eu_syscall_004FE140(void) { return hle_unknown_syscall(93); }  /* iCancelAlarm */
+int eu_syscall_004FE140(void) { hle_syscall(93); return (int)hle_syscall_result(); }  /* iCancelAlarm */
 int eu_syscall_004FE160(void) RETAIL(eu_syscall_004FE160);
-int eu_syscall_004FE160(void) { return hle_unknown_syscall(94); }  /* ReleaseAlarm */
+int eu_syscall_004FE160(void) { hle_syscall(94); return (int)hle_syscall_result(); }  /* ReleaseAlarm */
 int eu_syscall_004FE180(void) RETAIL(eu_syscall_004FE180);
-int eu_syscall_004FE180(void) { return hle_unknown_syscall(95); }  /* iReleaseAlarm */
+int eu_syscall_004FE180(void) { hle_syscall(95); return (int)hle_syscall_result(); }  /* iReleaseAlarm */
 int eu_syscall_004FE1A0(void) RETAIL(eu_syscall_004FE1A0);
-int eu_syscall_004FE1A0(void) { return hle_unknown_syscall(96); }  /* GetAlarmRemain */
+int eu_syscall_004FE1A0(void) { hle_syscall(96); return (int)hle_syscall_result(); }  /* GetAlarmRemain */
 int eu_syscall_004FE1B0(void) RETAIL(eu_syscall_004FE1B0);
-int eu_syscall_004FE1B0(void) { return hle_unknown_syscall(97); }  /* Syscall61 */
+int eu_syscall_004FE1B0(void) { hle_syscall(97); return (int)hle_syscall_result(); }  /* Syscall61 */
 int eu_syscall_004FE1C0(void) RETAIL(eu_syscall_004FE1C0);
-int eu_syscall_004FE1C0(void) { return hle_unknown_syscall(98); }  /* Syscall62 */
+int eu_syscall_004FE1C0(void) { hle_syscall(98); return (int)hle_syscall_result(); }  /* Syscall62 */
 int eu_syscall_004FE1D0(void) RETAIL(eu_syscall_004FE1D0);
-int eu_syscall_004FE1D0(void) { return hle_unknown_syscall(99); }  /* Syscall63 */
+int eu_syscall_004FE1D0(void) { hle_syscall(99); return (int)hle_syscall_result(); }  /* Syscall63 */
 int eu_syscall_004FE1E0(void) RETAIL(eu_syscall_004FE1E0);
-int eu_syscall_004FE1E0(void) { return hle_unknown_syscall(100); }  /* Syscall64 */
+int eu_syscall_004FE1E0(void) { hle_syscall(100); return (int)hle_syscall_result(); }  /* Syscall64 */
 int eu_syscall_004FE1F0(void) RETAIL(eu_syscall_004FE1F0);
-int eu_syscall_004FE1F0(void) { return hle_unknown_syscall(102); }  /* Syscall66 */
+int eu_syscall_004FE1F0(void) { hle_syscall(102); return (int)hle_syscall_result(); }  /* Syscall66 */
 int eu_syscall_004FE230(void) RETAIL(eu_syscall_004FE230);
-int eu_syscall_004FE230(void) { return hle_unknown_syscall(107); }  /* Syscall6B */
+int eu_syscall_004FE230(void) { hle_syscall(107); return (int)hle_syscall_result(); }  /* Syscall6B */
 int eu_syscall_004FE240(void) RETAIL(eu_syscall_004FE240);
-int eu_syscall_004FE240(void) { return hle_unknown_syscall(108); }  /* Syscall6C */
+int eu_syscall_004FE240(void) { hle_syscall(108); return (int)hle_syscall_result(); }  /* Syscall6C */
 int eu_syscall_004FE250(void) RETAIL(eu_syscall_004FE250);
-int eu_syscall_004FE250(void) { return hle_unknown_syscall(109); }  /* Syscall6D */
+int eu_syscall_004FE250(void) { hle_syscall(109); return (int)hle_syscall_result(); }  /* Syscall6D */
 int eu_syscall_004FE260(void) RETAIL(eu_syscall_004FE260);
-int eu_syscall_004FE260(void) { return hle_unknown_syscall(110); }  /* Syscall6E */
+int eu_syscall_004FE260(void) { hle_syscall(110); return (int)hle_syscall_result(); }  /* Syscall6E */
 int eu_syscall_004FE270(void) RETAIL(eu_syscall_004FE270);
-int eu_syscall_004FE270(void) { return hle_unknown_syscall(111); }  /* Syscall6F */
+int eu_syscall_004FE270(void) { hle_syscall(111); return (int)hle_syscall_result(); }  /* Syscall6F */
 int eu_syscall_004FE280(void) RETAIL(eu_syscall_004FE280);
-int eu_syscall_004FE280(void) { return hle_unknown_syscall(112); }  /* Syscall70 */
+int eu_syscall_004FE280(void) { hle_syscall(112); return (int)hle_syscall_result(); }  /* Syscall70 */
 int eu_syscall_004FE2A0(void) RETAIL(eu_syscall_004FE2A0);
-int eu_syscall_004FE2A0(void) { return hle_unknown_syscall(113); }  /* Syscall71 */
+int eu_syscall_004FE2A0(void) { hle_syscall(113); return (int)hle_syscall_result(); }  /* Syscall71 */
 int eu_syscall_004FE2C0(void) RETAIL(eu_syscall_004FE2C0);
-int eu_syscall_004FE2C0(void) { return hle_unknown_syscall(114); }  /* Syscall72 */
+int eu_syscall_004FE2C0(void) { hle_syscall(114); return (int)hle_syscall_result(); }  /* Syscall72 */
 int eu_syscall_004FE2D0(void) RETAIL(eu_syscall_004FE2D0);
-int eu_syscall_004FE2D0(void) { return hle_unknown_syscall(115); }  /* Syscall73 */
+int eu_syscall_004FE2D0(void) { hle_syscall(115); return (int)hle_syscall_result(); }  /* Syscall73 */
 int eu_syscall_005072C0(void) RETAIL(eu_syscall_005072C0);
-int eu_syscall_005072C0(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_005072C0(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_005074E8(void) RETAIL(eu_syscall_005074E8);
-int eu_syscall_005074E8(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_005074E8(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_00507328(void) RETAIL(eu_syscall_00507328);
-int eu_syscall_00507328(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_00507328(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_004FE2E0(void) RETAIL(eu_syscall_004FE2E0);
-int eu_syscall_004FE2E0(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_004FE2E0(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_00509BD8(void) RETAIL(eu_syscall_00509BD8);
-int eu_syscall_00509BD8(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_00509BD8(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_00507748(void) RETAIL(eu_syscall_00507748);
-int eu_syscall_00507748(void) { return hle_unknown_syscall(116); }  /* Syscall74 */
+int eu_syscall_00507748(void) { hle_syscall(116); return (int)hle_syscall_result(); }  /* Syscall74 */
 int eu_syscall_004FE2F0(void) RETAIL(eu_syscall_004FE2F0);
-int eu_syscall_004FE2F0(void) { return hle_unknown_syscall(117); }  /* Syscall75 */
+int eu_syscall_004FE2F0(void) { hle_syscall(117); return (int)hle_syscall_result(); }  /* Syscall75 */
 int eu_syscall_004FE300(void) RETAIL(eu_syscall_004FE300);
-int eu_syscall_004FE300(void) { return hle_unknown_syscall(118); }  /* Syscall76 */
+int eu_syscall_004FE300(void) { hle_syscall(118); return (int)hle_syscall_result(); }  /* Syscall76 */
 int eu_syscall_004FE320(void) RETAIL(eu_syscall_004FE320);
-int eu_syscall_004FE320(void) { return hle_unknown_syscall(119); }  /* Syscall77 */
+int eu_syscall_004FE320(void) { hle_syscall(119); return (int)hle_syscall_result(); }  /* Syscall77 */
 int eu_syscall_004FE340(void) RETAIL(eu_syscall_004FE340);
-int eu_syscall_004FE340(void) { return hle_unknown_syscall(120); }  /* Syscall78 */
+int eu_syscall_004FE340(void) { hle_syscall(120); return (int)hle_syscall_result(); }  /* Syscall78 */
 int eu_syscall_004FE360(void) RETAIL(eu_syscall_004FE360);
-int eu_syscall_004FE360(void) { return hle_unknown_syscall(121); }  /* Syscall79 */
+int eu_syscall_004FE360(void) { hle_syscall(121); return (int)hle_syscall_result(); }  /* Syscall79 */
 int eu_syscall_004FE370(void) RETAIL(eu_syscall_004FE370);
-int eu_syscall_004FE370(void) { return hle_unknown_syscall(122); }  /* Syscall7A */
+int eu_syscall_004FE370(void) { hle_syscall(122); return (int)hle_syscall_result(); }  /* Syscall7A */
 int eu_syscall_004FE380(void) RETAIL(eu_syscall_004FE380);
-int eu_syscall_004FE380(void) { return hle_unknown_syscall(123); }  /* Syscall7B */
+int eu_syscall_004FE380(void) { hle_syscall(123); return (int)hle_syscall_result(); }  /* Syscall7B */
 int eu_syscall_004FE390(void) RETAIL(eu_syscall_004FE390);
-int eu_syscall_004FE390(void) { return hle_unknown_syscall(124); }  /* Syscall7C */
+int eu_syscall_004FE390(void) { hle_syscall(124); return (int)hle_syscall_result(); }  /* Syscall7C */
 int eu_syscall_004FE3A0(void) RETAIL(eu_syscall_004FE3A0);
-int eu_syscall_004FE3A0(void) { return hle_unknown_syscall(125); }  /* Syscall7D */
+int eu_syscall_004FE3A0(void) { hle_syscall(125); return (int)hle_syscall_result(); }  /* Syscall7D */
 int eu_syscall_004FE3B0(void) RETAIL(eu_syscall_004FE3B0);
-int eu_syscall_004FE3B0(void) { return hle_unknown_syscall(126); }  /* Syscall7E */
+int eu_syscall_004FE3B0(void) { hle_syscall(126); return (int)hle_syscall_result(); }  /* Syscall7E */
 int eu_syscall_004FE3C0(void) RETAIL(eu_syscall_004FE3C0);
-int eu_syscall_004FE3C0(void) { return hle_unknown_syscall(127); }  /* Syscall7F */
+int eu_syscall_004FE3C0(void) { hle_syscall(127); return (int)hle_syscall_result(); }  /* Syscall7F */
 int eu_syscall_004FE3D0(void) RETAIL(eu_syscall_004FE3D0);
-int eu_syscall_004FE3D0(void) { return hle_unknown_syscall(130); }  /* Syscall82 */
+int eu_syscall_004FE3D0(void) { hle_syscall(130); return (int)hle_syscall_result(); }  /* Syscall82 */
 int eu_syscall_00507178(void) RETAIL(eu_syscall_00507178);
-int eu_syscall_00507178(void) { return hle_unknown_syscall(131); }  /* Syscall83 */
+int eu_syscall_00507178(void) { hle_syscall(131); return (int)hle_syscall_result(); }  /* Syscall83 */
 int eu_syscall_004FDCE0(void) RETAIL(eu_syscall_004FDCE0);
-int eu_syscall_004FDCE0(void) { return hle_unknown_syscall(252); }  /* SyscallFC */
+int eu_syscall_004FDCE0(void) { hle_syscall(252); return (int)hle_syscall_result(); }  /* SyscallFC */
 int eu_syscall_004FDCF0(void) RETAIL(eu_syscall_004FDCF0);
-int eu_syscall_004FDCF0(void) { return hle_unknown_syscall(253); }  /* SyscallFD */
+int eu_syscall_004FDCF0(void) { hle_syscall(253); return (int)hle_syscall_result(); }  /* SyscallFD */
 int eu_syscall_004FDD50(void) RETAIL(eu_syscall_004FDD50);
-int eu_syscall_004FDD50(void) { return hle_unknown_syscall(65281); }  /* SyscallFF01 */
+int eu_syscall_004FDD50(void) { hle_syscall(65281); return (int)hle_syscall_result(); }  /* SyscallFF01 */
 int eu_syscall_004FDD40(void) RETAIL(eu_syscall_004FDD40);
-int eu_syscall_004FDD40(void) { return hle_unknown_syscall(65282); }  /* SyscallFF02 */
+int eu_syscall_004FDD40(void) { hle_syscall(65282); return (int)hle_syscall_result(); }  /* SyscallFF02 */
 int eu_syscall_004FE350(void) RETAIL(eu_syscall_004FE350);
-int eu_syscall_004FE350(void) { return hle_unknown_syscall(65416); }  /* SyscallFF88 */
+int eu_syscall_004FE350(void) { hle_syscall(65416); return (int)hle_syscall_result(); }  /* SyscallFF88 */
 int eu_syscall_004FE330(void) RETAIL(eu_syscall_004FE330);
-int eu_syscall_004FE330(void) { return hle_unknown_syscall(65417); }  /* SyscallFF89 */
+int eu_syscall_004FE330(void) { hle_syscall(65417); return (int)hle_syscall_result(); }  /* SyscallFF89 */
 int eu_syscall_004FE310(void) RETAIL(eu_syscall_004FE310);
-int eu_syscall_004FE310(void) { return hle_unknown_syscall(65418); }  /* SyscallFF8A */
+int eu_syscall_004FE310(void) { hle_syscall(65418); return (int)hle_syscall_result(); }  /* SyscallFF8A */
 int eu_syscall_004FE2B0(void) RETAIL(eu_syscall_004FE2B0);
-int eu_syscall_004FE2B0(void) { return hle_unknown_syscall(65423); }  /* SyscallFF8F */
+int eu_syscall_004FE2B0(void) { hle_syscall(65423); return (int)hle_syscall_result(); }  /* SyscallFF8F */
 int eu_syscall_004FE290(void) RETAIL(eu_syscall_004FE290);
-int eu_syscall_004FE290(void) { return hle_unknown_syscall(65424); }  /* SyscallFF90 */
+int eu_syscall_004FE290(void) { hle_syscall(65424); return (int)hle_syscall_result(); }  /* SyscallFF90 */
 int eu_syscall_004FE220(void) RETAIL(eu_syscall_004FE220);
-int eu_syscall_004FE220(void) { return hle_unknown_syscall(65430); }  /* SyscallFF96 */
+int eu_syscall_004FE220(void) { hle_syscall(65430); return (int)hle_syscall_result(); }  /* SyscallFF96 */
 int eu_syscall_004FE210(void) RETAIL(eu_syscall_004FE210);
-int eu_syscall_004FE210(void) { return hle_unknown_syscall(65432); }  /* SyscallFF98 */
+int eu_syscall_004FE210(void) { hle_syscall(65432); return (int)hle_syscall_result(); }  /* SyscallFF98 */
 int eu_syscall_004FE200(void) RETAIL(eu_syscall_004FE200);
-int eu_syscall_004FE200(void) { return hle_unknown_syscall(65433); }  /* SyscallFF99 */
+int eu_syscall_004FE200(void) { hle_syscall(65433); return (int)hle_syscall_result(); }  /* SyscallFF99 */
 int eu_syscall_004FE190(void) RETAIL(eu_syscall_004FE190);
-int eu_syscall_004FE190(void) { return hle_unknown_syscall(65441); }  /* SyscallFFA1 */
+int eu_syscall_004FE190(void) { hle_syscall(65441); return (int)hle_syscall_result(); }  /* SyscallFFA1 */
 int eu_syscall_004FE170(void) RETAIL(eu_syscall_004FE170);
-int eu_syscall_004FE170(void) { return hle_unknown_syscall(65442); }  /* SyscallFFA2 */
+int eu_syscall_004FE170(void) { hle_syscall(65442); return (int)hle_syscall_result(); }  /* SyscallFFA2 */
 int eu_syscall_004FE150(void) RETAIL(eu_syscall_004FE150);
-int eu_syscall_004FE150(void) { return hle_unknown_syscall(65443); }  /* SyscallFFA3 */
+int eu_syscall_004FE150(void) { hle_syscall(65443); return (int)hle_syscall_result(); }  /* SyscallFFA3 */
 int eu_syscall_004FE130(void) RETAIL(eu_syscall_004FE130);
-int eu_syscall_004FE130(void) { return hle_unknown_syscall(65444); }  /* SyscallFFA4 */
+int eu_syscall_004FE130(void) { hle_syscall(65444); return (int)hle_syscall_result(); }  /* SyscallFFA4 */
 int eu_syscall_004FE100(void) RETAIL(eu_syscall_004FE100);
-int eu_syscall_004FE100(void) { return hle_unknown_syscall(65446); }  /* SyscallFFA6 */
+int eu_syscall_004FE100(void) { hle_syscall(65446); return (int)hle_syscall_result(); }  /* SyscallFFA6 */
 int eu_syscall_00509D50(void) RETAIL(eu_syscall_00509D50);
-int eu_syscall_00509D50(void) { return hle_unknown_syscall(65448); }  /* SyscallFFA8 */
+int eu_syscall_00509D50(void) { hle_syscall(65448); return (int)hle_syscall_result(); }  /* SyscallFFA8 */
 int eu_syscall_004FE0E0(void) RETAIL(eu_syscall_004FE0E0);
-int eu_syscall_004FE0E0(void) { return hle_unknown_syscall(65448); }  /* SyscallFFA8 */
+int eu_syscall_004FE0E0(void) { hle_syscall(65448); return (int)hle_syscall_result(); }  /* SyscallFFA8 */
 int eu_syscall_00509D30(void) RETAIL(eu_syscall_00509D30);
-int eu_syscall_00509D30(void) { return hle_unknown_syscall(65449); }  /* SyscallFFA9 */
+int eu_syscall_00509D30(void) { hle_syscall(65449); return (int)hle_syscall_result(); }  /* SyscallFFA9 */
 int eu_syscall_00509D10(void) RETAIL(eu_syscall_00509D10);
-int eu_syscall_00509D10(void) { return hle_unknown_syscall(65450); }  /* SyscallFFAA */
+int eu_syscall_00509D10(void) { hle_syscall(65450); return (int)hle_syscall_result(); }  /* SyscallFFAA */
 int eu_syscall_004FE0B0(void) RETAIL(eu_syscall_004FE0B0);
-int eu_syscall_004FE0B0(void) { return hle_unknown_syscall(65451); }  /* SyscallFFAB */
+int eu_syscall_004FE0B0(void) { hle_syscall(65451); return (int)hle_syscall_result(); }  /* SyscallFFAB */
 int eu_syscall_00509CC0(void) RETAIL(eu_syscall_00509CC0);
-int eu_syscall_00509CC0(void) { return hle_unknown_syscall(65451); }  /* SyscallFFAB */
+int eu_syscall_00509CC0(void) { hle_syscall(65451); return (int)hle_syscall_result(); }  /* SyscallFFAB */
 int eu_syscall_004FE090(void) RETAIL(eu_syscall_004FE090);
-int eu_syscall_004FE090(void) { return hle_unknown_syscall(65453); }  /* SyscallFFAD */
+int eu_syscall_004FE090(void) { hle_syscall(65453); return (int)hle_syscall_result(); }  /* SyscallFFAD */
 int eu_syscall_004FDFE0(void) RETAIL(eu_syscall_004FDFE0);
-int eu_syscall_004FDFE0(void) { return hle_unknown_syscall(65464); }  /* SyscallFFB8 */
+int eu_syscall_004FDFE0(void) { hle_syscall(65464); return (int)hle_syscall_result(); }  /* SyscallFFB8 */
 int eu_syscall_004FDFC0(void) RETAIL(eu_syscall_004FDFC0);
-int eu_syscall_004FDFC0(void) { return hle_unknown_syscall(65466); }  /* SyscallFFBA */
+int eu_syscall_004FDFC0(void) { hle_syscall(65466); return (int)hle_syscall_result(); }  /* SyscallFFBA */
 int eu_syscall_004FDF90(void) RETAIL(eu_syscall_004FDF90);
-int eu_syscall_004FDF90(void) { return hle_unknown_syscall(65469); }  /* SyscallFFBD */
+int eu_syscall_004FDF90(void) { hle_syscall(65469); return (int)hle_syscall_result(); }  /* SyscallFFBD */
 int eu_syscall_004FDF00(void) RETAIL(eu_syscall_004FDF00);
-int eu_syscall_004FDF00(void) { return hle_unknown_syscall(65478); }  /* SyscallFFC6 */
+int eu_syscall_004FDF00(void) { hle_syscall(65478); return (int)hle_syscall_result(); }  /* SyscallFFC6 */
 int eu_syscall_004FDEE0(void) RETAIL(eu_syscall_004FDEE0);
-int eu_syscall_004FDEE0(void) { return hle_unknown_syscall(65480); }  /* SyscallFFC8 */
+int eu_syscall_004FDEE0(void) { hle_syscall(65480); return (int)hle_syscall_result(); }  /* SyscallFFC8 */
 int eu_syscall_004FDEC0(void) RETAIL(eu_syscall_004FDEC0);
-int eu_syscall_004FDEC0(void) { return hle_unknown_syscall(65482); }  /* SyscallFFCA */
+int eu_syscall_004FDEC0(void) { hle_syscall(65482); return (int)hle_syscall_result(); }  /* SyscallFFCA */
 int eu_syscall_004FDEA0(void) RETAIL(eu_syscall_004FDEA0);
-int eu_syscall_004FDEA0(void) { return hle_unknown_syscall(65484); }  /* SyscallFFCC */
+int eu_syscall_004FDEA0(void) { hle_syscall(65484); return (int)hle_syscall_result(); }  /* SyscallFFCC */
 int eu_syscall_004FDE70(void) RETAIL(eu_syscall_004FDE70);
-int eu_syscall_004FDE70(void) { return hle_unknown_syscall(65487); }  /* SyscallFFCF */
+int eu_syscall_004FDE70(void) { hle_syscall(65487); return (int)hle_syscall_result(); }  /* SyscallFFCF */
 int eu_syscall_004FDE40(void) RETAIL(eu_syscall_004FDE40);
-int eu_syscall_004FDE40(void) { return hle_unknown_syscall(65490); }  /* SyscallFFD2 */
+int eu_syscall_004FDE40(void) { hle_syscall(65490); return (int)hle_syscall_result(); }  /* SyscallFFD2 */
 int eu_syscall_004FDE20(void) RETAIL(eu_syscall_004FDE20);
-int eu_syscall_004FDE20(void) { return hle_unknown_syscall(65492); }  /* SyscallFFD4 */
+int eu_syscall_004FDE20(void) { hle_syscall(65492); return (int)hle_syscall_result(); }  /* SyscallFFD4 */
 int eu_syscall_004FDE00(void) RETAIL(eu_syscall_004FDE00);
-int eu_syscall_004FDE00(void) { return hle_unknown_syscall(65494); }  /* SyscallFFD6 */
+int eu_syscall_004FDE00(void) { hle_syscall(65494); return (int)hle_syscall_result(); }  /* SyscallFFD6 */
 int eu_syscall_004FDDC0(void) RETAIL(eu_syscall_004FDDC0);
-int eu_syscall_004FDDC0(void) { return hle_unknown_syscall(65498); }  /* SyscallFFDA */
+int eu_syscall_004FDDC0(void) { hle_syscall(65498); return (int)hle_syscall_result(); }  /* SyscallFFDA */
 int eu_syscall_004FDD30(void) RETAIL(eu_syscall_004FDD30);
-int eu_syscall_004FDD30(void) { return hle_unknown_syscall(65507); }  /* SyscallFFE3 */
+int eu_syscall_004FDD30(void) { hle_syscall(65507); return (int)hle_syscall_result(); }  /* SyscallFFE3 */
 int eu_syscall_004FDD20(void) RETAIL(eu_syscall_004FDD20);
-int eu_syscall_004FDD20(void) { return hle_unknown_syscall(65508); }  /* SyscallFFE4 */
+int eu_syscall_004FDD20(void) { hle_syscall(65508); return (int)hle_syscall_result(); }  /* SyscallFFE4 */
 int eu_syscall_004FDD10(void) RETAIL(eu_syscall_004FDD10);
-int eu_syscall_004FDD10(void) { return hle_unknown_syscall(65509); }  /* SyscallFFE5 */
+int eu_syscall_004FDD10(void) { hle_syscall(65509); return (int)hle_syscall_result(); }  /* SyscallFFE5 */
 int eu_syscall_004FDD00(void) RETAIL(eu_syscall_004FDD00);
-int eu_syscall_004FDD00(void) { return hle_unknown_syscall(65510); }  /* SyscallFFE6 */
+int eu_syscall_004FDD00(void) { hle_syscall(65510); return (int)hle_syscall_result(); }  /* SyscallFFE6 */
 
 /* The recompiled code calls the wrapper by its guest address; this names the host function. */
 __asm__(".globl func_004FDB40\n.set func_004FDB40, eu_syscall_004FDB40");

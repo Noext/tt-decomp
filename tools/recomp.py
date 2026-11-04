@@ -221,6 +221,12 @@ class Func:
 
     def sym(self, name, addend):
         self.symbols.add(name)
+        # An address the GAME holds is a guest number. A data label's host address maps back
+        # (flat memory), but a function's host address does not: the recompiled function lives in
+        # the host binary, not at the guest code address. Emit the guest number for code.
+        m = re.match(r'^(?:func|sub)_([0-9A-Fa-f]{8})$', name)
+        if m:
+            return '0x%sU' % m.group(1)
         return '((uint32_t)(uintptr_t)A_%s + %d)' % (c_ident(name), addend) if addend else \
             '((uint32_t)(uintptr_t)A_%s)' % c_ident(name)
 
@@ -1156,7 +1162,13 @@ def write(name, recompiled, sigs):
         out.append('#include "fps.h"')
     out.append('')
     for s in sorted(fn.symbols):
-        out.append('extern char A_%s[] __asm__("%s%s");' % (c_ident(s), P, s))
+        m = re.match(r'^(?:func|sub)_([0-9A-Fa-f]{8})$', s)
+        if m:
+            # A code symbol used as a value is the GUEST number, not where the host put the
+            # function: the game stores these in its tables and searches for them.
+            out.append('#define A_%s ((char *)0x%sU)' % (c_ident(s), m.group(1)))
+        else:
+            out.append('extern char A_%s[] __asm__("%s%s");' % (c_ident(s), P, s))
     for c in sorted(fn.callees):
         if c in recompiled:
             out.append('void rc_%s(void);' % c)

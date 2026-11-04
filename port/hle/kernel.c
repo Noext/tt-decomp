@@ -654,17 +654,38 @@ void hle_syscall(uint32_t number)
     case 0x7F:  /* GetMemorySize */
         ps2.gpr[2].d[0] = PS2_RAM_SIZE;
         return;
-    case 0x83: {  /* FindAddress(start, end, target): scan [start,end) for `target`, 4 bytes at a
-                     time, and return the address that holds it (0 when none). The SDK's allocator
-                     uses this to locate its own block in a region it was handed. */
-        uint32_t start = (a0 + 3u) & ~3u, end = (uint32_t)ps2.gpr[5].d[0];
+    case 0x83: {  /* FindAddress(start, end, value): the first word of the window equal to the
+                     value, compared through the kernel alias. Returns its address, or 0.
+
+                     Only real PS2 memory is scanned. The six RAM ranges are 32 MB each; an address
+                     outside them does not exist, so it is not a match and the scan stops there.
+                     (A permissive "wrap everything into RAM" makes one value appear at every
+                     0x20000000 step and the caller's loop never ends.) */
+        uint32_t begin = a0, finish = (uint32_t)ps2.gpr[5].d[0];
         uint32_t target = (uint32_t)ps2.gpr[6].d[0];
-        uint32_t found = 0;
-        for (uint32_t at = start; at + 4 <= end; at += 4) {
+        uint32_t tnorm = (target >= 0x80000000u && target < 0xC0000000u)
+                         ? (target & 0x1FFFFFFFu) : target;
+        /* Not found means "the window is exhausted": the answer is the window's start, which is
+           how the caller's merge loop advances by one word at a time. Returning 0 makes it fall
+           back to address 0 and start over, which is the endless loop the first boot had. */
+        uint32_t found = (begin + 3u) & ~3u;
+        for (uint32_t at = (begin + 3u) & ~3u; at + 4 <= finish; at += 4) {
+            uint32_t phys;
+            if (at < 0x02000000u)                    phys = at;
+            else if (at - 0x20000000u < 0x02000000u) phys = at & 0x1FFFFFFFu;
+            else if (at - 0x30000000u < 0x02000000u) phys = at & 0x0FFFFFFFu;
+            else if (at - 0x80000000u < 0x02000000u) phys = at & 0x1FFFFFFFu;
+            else if (at - 0xA0000000u < 0x02000000u) phys = at & 0x1FFFFFFFu;
+            else if (at - 0xC0000000u < 0x02000000u) phys = at & 0x0FFFFFFFu;
+            else break;                              /* not memory: the window ends here */
             uint32_t word;
-            memcpy(&word, (void *)(uintptr_t)ps2_ram_canonical(at), 4);
-            if (word == target) { found = at; break; }
+            memcpy(&word, (void *)(uintptr_t)ps2_ram_canonical(phys), 4);
+            uint32_t wnorm = (word >= 0x80000000u && word < 0xC0000000u)
+                             ? (word & 0x1FFFFFFFu) : word;
+            if (word == target || wnorm == tnorm) { found = at; break; }
         }
+        { static int q; if (q++ < 10)
+            fprintf(stderr, "FA(0x%x,0x%x,0x%x)=0x%x\n", begin, finish, target, found); }
         ps2.gpr[2].d[0] = found;
         return; }
     default:
@@ -672,3 +693,6 @@ void hle_syscall(uint32_t number)
         return;
     }
 }
+
+/* What the last dispatch left in $v0, for the wrapper that returns it as an int. */
+uint32_t hle_syscall_result(void) { return (uint32_t)ps2.gpr[2].d[0]; }

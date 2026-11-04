@@ -90,3 +90,29 @@ address itself.
   the image (VU1 memory); they need following.
 - **`TT.VOL`** has no reader.
 - **I/O**: CDVD, pad, memory card and SIF are stubs.
+
+## The port builds and boots (2026-11-04)
+
+`port/Makefile` builds one Linux binary from the runtime, the HLE and the host:
+
+    cd port && make && ./bootport IMAGE.bin LOAD_ADDRESS [--entry ADDR]
+
+| module | from | adapted? |
+|---|---|---|
+| `runtime/vu0_interp.c` (VU0 **and VU1** interpreter) | downhill-revived | no |
+| `runtime/ps2asm.c` (the asm/MMI runtime) | downhill-revived | no |
+| `gs/gs.c`, `gs/memory.c` (GS) | downhill-revived | no |
+| `hle/vif.c` (VIF unpacker, the microcode loader) | downhill-revived | includes moved, SIMDe → native SSE2, `host_seconds` → `host_wall_seconds` |
+| `runtime/memory.c` (PS2 address space) | downhill-revived | no |
+| `hle/kernel.c`, `hle/syscalls.c` | written here | new |
+| `host/host_linux.c` (RAM, fixed pages, clock) | written here | new |
+| `host/port_glue.c` (the hooks the runtime expects) | written here | new |
+| `host/boot_main.c` | written here | new |
+
+**7,000+ lines reused unchanged.** The VU1 was never "unlocatable": `vu0_interp.c` runs any
+microcode VIF1 uploads, and `vif.c` is the loader. The port was an integration job.
+
+What it does today: maps the PS2 address space at the PS2 addresses (`memfd` + `MAP_FIXED`), loads
+an image at its guest address, and runs it through the kernel. What it does not do yet: generate
+the data fixups (`port/tools/data.py` equivalent) and resolve guest entry points to recompiled
+host functions (`ps2_host_entry`).

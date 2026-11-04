@@ -177,4 +177,7 @@
 int hle_unknown_syscall(int number);
 extern int hle_verbose;
 
+/* The HLE's own logging: DHD_VERBOSE in the environment turns it on. */
+void hle_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
+
 #endif

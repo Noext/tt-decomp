@@ -54,7 +54,7 @@ def decrypt(raw):
     return bytes(out)
 
 
-def unpack(raw):
+def unpack_core(raw):
     """(flags, [hashes], entry, [(addr, bytes)]) of a CORE file, encrypted or not."""
     first = None
     for plain in (raw, decrypt(raw)):
@@ -90,7 +90,7 @@ def _unpack(raw):
     return flags, hashes, entry, sections
 
 
-def drop_contained(sections):
+def drop_duplicates(sections):
     """Drop a section that lies entirely inside another: CORE files repeat the last 24 bytes of
     the code as a section of their own, and splat must see one contiguous code segment."""
     out = []
@@ -155,14 +155,14 @@ def main():
     if not args:
         sys.exit(__doc__)
     raw = open(args[0], "rb").read()
-    flags, hashes, entry, sections = unpack(raw)
+    flags, hashes, entry, sections = unpack_core(raw)
     print(f"flags {flags:#06x}  entry {entry:#010x}  sections {len(sections)}  "
           f"hashes {[h.hex()[:16] + '...' for h in hashes]}")
     for addr, data in sections:
         print(f"  {addr:#010x}  {len(data):>9,} bytes")
     if "--info" in sys.argv:
         return
-    write_elf(flags, entry, drop_contained(sections), args[1])
+    write_elf(flags, entry, drop_duplicates(sections), args[1])
     print("wrote", args[1])
 
 

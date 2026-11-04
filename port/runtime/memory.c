@@ -57,8 +57,11 @@ int ps2_memory_init(void)
                 PS2_LOW_VIEW);
     /* Fixed memory at its PS2 address: in the host's reservation (the wasm core's linear memory),
        else free space; if something else holds it, host_mem_commit's log line says what. */
+    /* The EE's hardware registers have an uncached mirror at 0xB0000000 (+0x10000000), which the
+       game uses for the timers and the DMA controllers. Same bytes, aliased like the RAM views. */
     if (!host_mem_commit(PS2_SCRATCHPAD, 0x4000) || !host_mem_commit(0x10000000, 0x10000)
-        || !host_mem_commit(0x12000000, 0x2000) || !host_mem_commit(0x11000000, 0x10000)) {
+        || !host_mem_commit(0x12000000, 0x2000) || !host_mem_commit(0x11000000, 0x10000)
+        || !host_mem_commit(0xB0000000, 0x10000)) {
         fprintf(stderr, "ps2_memory_init: can't map the scratchpad, VU memory or the hardware registers\n");
         return 0;
     }

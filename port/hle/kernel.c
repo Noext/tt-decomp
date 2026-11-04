@@ -659,12 +659,69 @@ uint32_t hle_setup_thread(uint32_t gp, uint32_t stack, uint32_t stack_size)
     return stack_size ? stack + stack_size : stack;
 }
 
+/* ---- the guest syscall table (E) ----
+
+   The game does not only call the kernel; like the SDK's own "InitExecPS2" it RE-INSTALLS handlers
+   with SetSyscall (0x74), then reads the table back. downhill-revived needs none of this because
+   nothing in its game does it; here the table must exist or the game's FindAddress-based search
+   for its own handlers finds nothing and its merge loop has no base to compute.
+
+   The table is the kernel's view of the syscall array: 0x100 entries of 4 bytes at 0x80011F80,
+   the address ps2sdk documents (ee/kernel/src/libosd.c: "the start of the syscall table" is
+   0x80011F80, and SetSyscall takes (base + n*4)). An entry holds a GUEST address of a handler, so
+   hle_syscall can call it through the entry table; zero means "use this port's own implementation". */
+#define SYSCALL_TABLE_AT   0x80011F80u
+#define SYSCALL_TABLE_SIZE 0x100u
+
+uint32_t hle_syscall_table_entry(uint32_t n)
+{
+    uint32_t v;
+    if (n >= SYSCALL_TABLE_SIZE) return 0;
+    memcpy(&v, (void *)(uintptr_t)ps2_ram_canonical(SYSCALL_TABLE_AT + n * 4), 4);
+    return v;
+}
+
+static void syscall_table_set(uint32_t n, uint32_t handler)
+{
+    if (n >= SYSCALL_TABLE_SIZE) {
+        hle_log("SetSyscall %u: outside the table, ignored\n", n);
+        return;
+    }
+    memcpy((void *)(uintptr_t)ps2_ram_canonical(SYSCALL_TABLE_AT + n * 4), &handler, 4);
+}
+
+uint32_t hle_call_guest(uint32_t guest, uint32_t, uint32_t, uint32_t, uint32_t,
+                        uint32_t, uint32_t, uint32_t, uint32_t);
+
 void hle_syscall(uint32_t number)
 {
 extern int hle_trace_on;
     if (hle_trace_on && number != 64 && number != 116 && number != 100 && number != 120)
         fprintf(stderr, "syscall %u (pc-ish)\n", number);
     uint32_t a0 = (uint32_t)ps2.gpr[4].d[0], a1 = (uint32_t)ps2.gpr[5].d[0];
+
+    if (number == 0x74) {               /* SetSyscall: the game installs one of its own handlers */
+        { static int k; if (k++ < 12)
+            fprintf(stderr, "SetSyscall(%u, 0x%08x)\n", a0, a1); }
+        syscall_table_set(a0, a1);
+        return;
+    }
+    /* A handler the game installed runs instead of this port's implementation, but only when it
+       is code this port can run: an address inside the recompiled image. The game also installs
+       handlers into RAM (0x8007xxxx, the SDK's own copied code); calling those means running
+       un-recompiled MIPS, which is not what this step does, so they fall through to the native
+       implementation and the table keeps the value for whoever reads it back. */
+    if (number != 0x83) {               /* FindAddress is the call that LOCATES handlers, not one */
+        uint32_t handler = hle_syscall_table_entry(number);
+        if (handler && handler >= 0x00100000u && handler < 0x0057C5B0u) {
+            uint32_t r = hle_call_guest(handler, a0, a1, (uint32_t)ps2.gpr[6].d[0],
+                                        (uint32_t)ps2.gpr[7].d[0], (uint32_t)ps2.gpr[8].d[0],
+                                        (uint32_t)ps2.gpr[9].d[0], (uint32_t)ps2.gpr[10].d[0],
+                                        (uint32_t)ps2.gpr[11].d[0]);
+            ps2.gpr[2].d[0] = r;
+            return;
+        }
+    }
     switch (number) {
     case 0x3C:  /* SetupThread(gp, stack, stack_size) */
         ps2.gpr[2].d[0] = hle_setup_thread(a0, a1, (uint32_t)ps2.gpr[6].d[0]);
@@ -695,21 +752,14 @@ extern int hle_trace_on;
                                                   (uint32_t)ps2.gpr[6].d[0]); return;
     case 91: ps2.gpr[2].d[0] = (uint32_t)iSetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
                                                    (uint32_t)ps2.gpr[6].d[0]); return;
-    case 0x83: {  /* FindAddress(start, end, value): the first word of the window equal to the
-                     value, compared through the kernel alias. Returns its address, or 0.
-
-                     Only real PS2 memory is scanned. The six RAM ranges are 32 MB each; an address
-                     outside them does not exist, so it is not a match and the scan stops there.
-                     (A permissive "wrap everything into RAM" makes one value appear at every
-                     0x20000000 step and the caller's loop never ends.) */
+    case 0x83: {  /* FindAddress(start, end, value): the first word of [start,end) equal to the
+                     value, compared through the kernel alias. Returns its address, 0 if absent.
+                     Follows PS2Recomp's computeBuiltinFindAddressResult (GPL-3.0). */
         uint32_t begin = a0, finish = (uint32_t)ps2.gpr[5].d[0];
         uint32_t target = (uint32_t)ps2.gpr[6].d[0];
         uint32_t tnorm = (target >= 0x80000000u && target < 0xC0000000u)
                          ? (target & 0x1FFFFFFFu) : target;
-        /* Not found means "the window is exhausted": the answer is the window's start, which is
-           how the caller's merge loop advances by one word at a time. Returning 0 makes it fall
-           back to address 0 and start over, which is the endless loop the first boot had. */
-        uint32_t found = (begin + 3u) & ~3u;
+        uint32_t found = 0;
         for (uint32_t at = (begin + 3u) & ~3u; at + 4 <= finish; at += 4) {
             uint32_t phys;
             if (at < 0x02000000u)                    phys = at;
@@ -718,15 +768,13 @@ extern int hle_trace_on;
             else if (at - 0x80000000u < 0x02000000u) phys = at & 0x1FFFFFFFu;
             else if (at - 0xA0000000u < 0x02000000u) phys = at & 0x1FFFFFFFu;
             else if (at - 0xC0000000u < 0x02000000u) phys = at & 0x0FFFFFFFu;
-            else break;                              /* not memory: the window ends here */
+            else break;
             uint32_t word;
             memcpy(&word, (void *)(uintptr_t)ps2_ram_canonical(phys), 4);
             uint32_t wnorm = (word >= 0x80000000u && word < 0xC0000000u)
                              ? (word & 0x1FFFFFFFu) : word;
             if (word == target || wnorm == tnorm) { found = at; break; }
         }
-        { static int q; if (q++ < 10)
-            fprintf(stderr, "FA(0x%x,0x%x,0x%x)=0x%x\n", begin, finish, target, found); }
         ps2.gpr[2].d[0] = found;
         return; }
     default:

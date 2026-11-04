@@ -51,8 +51,65 @@ extern void (*ps2_graphics_sync)(void);
    bytes, but the access stays on the hosts' inline path (finding 090 SP14: about 70% of the x64
    slow-path calls, 48k per race field). Only the module's guest addresses fold; native test
    builds pass host pointers. */
+/* ---- the guest-pointer audit (DHD_AUDIT=1) ----
+
+   The two bugs that cost the most time in this port had one cause: a 64-bit HOST pointer leaking
+   into guest state, where the game then used its low 32 bits as an address. A host pointer is
+   recognisable: the guest space is 0x00000000-0xFFFFFFFF and only a few ranges are mapped, while
+   host pointers on a 64-bit machine sit far above that or are asymmetric after truncation. */
+#if defined(PS2_AUDIT)
+extern void ps2_audit_fail(const char *what, uintptr_t address);
+#define PS2_AUDIT_ADDR(what, a) ps2_audit_fail(what, (uintptr_t)(a))
+#else
+#define PS2_AUDIT_ADDR(what, a) ((void)0)
+#endif
+
+/* True when `address` is an address the guest could legitimately hold: within 32 bits, and either
+   a mapped guest range or below the RAM top. A host pointer that lost its high half usually lands
+   in the hardware-register window or past RAM; both are reported. */
+static inline int ps2_guest_address_plausible(uintptr_t address)
+{
+    if (address > 0xFFFFFFFFu)
+        return 0;                                   /* a 64-bit host pointer, not a guest one */
+    if (address < 0x02000000u) return 1;            /* RAM, scratchpad-free low memory */
+    if (address - 0x10000000u < 0x02010000u) return 1;  /* hardware registers, VU memory */
+    if (address - 0x20000000u < 0x02000000u) return 1;  /* uncached RAM */
+    if (address - 0x30000000u < 0x02000000u) return 1;  /* uncached accelerated */
+    if (address - 0x70000000u < 0x00004000u) return 1;  /* scratchpad */
+    if (address - 0x80000000u < 0x02000000u) return 1;  /* kernel view */
+    if (address - 0xA0000000u < 0x02000000u) return 1;
+    if (address - 0xC0000000u < 0x02000000u) return 1;
+    return 0;
+}
+
+/* The physical address a guest address stands for, or 0xFFFFFFFF when it is not memory.
+   The PS2 has six 32 MiB views of the same RAM plus the scratchpad; every view folds onto the
+   one block the host maps at 0x08000000. */
+static inline uint32_t ps2_guest_physical(uintptr_t address)
+{
+    uint32_t a = (uint32_t)address;
+    if (a < 0x02000000u)                    return a;
+    if (a - 0x20000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
+    if (a - 0x30000000u < 0x02000000u)      return a & 0x0FFFFFFFu;
+    if (a - 0x80000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
+    if (a - 0xA0000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
+    if (a - 0xC0000000u < 0x02000000u)      return a & 0x0FFFFFFFu;
+    return 0xFFFFFFFFu;
+}
+
 static inline uintptr_t ps2_ram_canonical(uintptr_t address)
 {
+    if (!ps2_guest_address_plausible(address))
+        PS2_AUDIT_ADDR("guest memory access", address);
+#if defined(PS2_HOST_FLAT_MEMORY)
+    /* A plain host maps the 32 MiB block once; every guest view becomes a host pointer. Only RAM
+       folds here: the hardware registers and VU memory are mapped at their own addresses. */
+    {
+        uint32_t phys = ps2_guest_physical(address);
+        if (phys != 0xFFFFFFFFu)
+            return 0x08000000u + (phys & 0x01FFFFFFu);
+    }
+#endif
 #if defined(__wasm__)
     /* one bit test for the two 32-MiB windows (0 and 28) that hold these views */
     if (__builtin_expect((0x10000001ull >> ((address >> 25) & 63)) & 1, 0)) {

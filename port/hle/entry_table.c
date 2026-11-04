@@ -37,5 +37,8 @@ uint32_t hle_call_guest(uint32_t guest, uint32_t a0, uint32_t a1, uint32_t a2, u
                         uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7)
 {
     ps2_entry_fn *fn = hle_resolve_entry(guest);
-    return fn ? fn(a0, a1, a2, a3, a4, a5, a6, a7) : 0;
+    { static int n; if (n++ < 8)
+        fprintf(stderr, "hle_call_guest(0x%08x) -> %p\n", guest, (void *)fn); }
+    if (!fn) return 0;
+    return fn(a0, a1, a2, a3, a4, a5, a6, a7);
 }

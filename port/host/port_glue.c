@@ -50,3 +50,16 @@ uint64_t kernel_vsync_count;
 uint64_t host_cycles(void) { return (uint64_t)(host_wall_seconds() * 147456000.0); }
 
 /* The kernel resolves a guest entry through this name. */
+
+/* The guest-pointer audit (ps2asm.h PS2_AUDIT): a host pointer where the game expects a guest
+   address. Printing the caller's return address names the generated function it escaped from. */
+#if defined(PS2_AUDIT)
+static int audit_reports;
+void ps2_audit_fail(const char *what, uintptr_t address)
+{
+    if (audit_reports++ > 20) return;
+    fprintf(stderr, "AUDIT: %s 0x%016lx from %p\n", what, (unsigned long)address,
+            __builtin_return_address(1));
+    if (audit_reports == 21) fprintf(stderr, "AUDIT: no more reports\n");
+}
+#endif

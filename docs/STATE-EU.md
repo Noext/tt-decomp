@@ -46,6 +46,27 @@ starting point wherever one exists.
   (MIPS/VU0 interpreter, memory), `port/tools/recomp.py` (static recompilation of functions that
   are still assembly).
 
+## What is adopted (2026-11-04)
+
+- **1,465 sources** are written at their EU addresses (`src/`, commit f7d1d3d). Each was compiled
+  with the original compiler and proven **word-identical** to the EU function.
+- Coverage of that set: **106,928 of 4,703,664 code bytes (2.3 %)**. The identical-US-source set
+  is small; the bulk of the EU code has no identical US source.
+
+## Pairing method and its limit
+
+`tools/pair_sources.py` pairs a source with a target function only when every instruction has the
+same shape (opcode, registers, funct field) and reports `exact` / `addr` / `imm` / `no pair`. A
+pair is kept only when **one source and one target** share it. 16,381 functions are `ambiguous`:
+a shape such as "constructor storing two members" has hundreds of sources and hundreds of EU
+targets, and nothing in the binary says which is which. Resolving those needs the US executable
+(the symbol map), which this checkout does not have.
+
+`tools/rename_pass.py` rewrites the `jal` targets a source uses, naming them at the EU address the
+target function's own relocation points to. On a 150-pair sample of `addr` pairs it reaches an
+exact match for **126**; the other 24 call through data pointers (callback tables), which needs the
+data section resolved first.
+
 ## Next steps
 
 1. **Match the large EU functions** with the USA source as a draft. Work from the biggest uncovered

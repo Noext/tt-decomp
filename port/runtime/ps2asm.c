@@ -34,6 +34,15 @@ void (*ps2_mmio_write)(uintptr_t address, uint64_t value, unsigned size);
 void (*ps2_graphics_sync)(void);
 void (*ps2_intc_read)(void);
 
+/* A guest address that is not in the map: abort with the address and the caller, rather than
+   dereference it. Every path in the port funnels here, so this is where a bad address surfaces. */
+void ps2_address_fault(uintptr_t address)
+{
+    fprintf(stderr, "ps2: guest address 0x%016lx is not RAM, MMIO or scratchpad (caller %p)\n",
+            (unsigned long)address, __builtin_return_address(1));
+    abort();
+}
+
 void ps2_store32(uintptr_t address, uint32_t value)
 {
     address = ps2_memory_address(address);

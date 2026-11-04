@@ -51,12 +51,71 @@ extern void (*ps2_graphics_sync)(void);
    bytes, but the access stays on the hosts' inline path (finding 090 SP14: about 70% of the x64
    slow-path calls, 48k per race field). Only the module's guest addresses fold; native test
    builds pass host pointers. */
-/* ---- the guest-pointer audit (DHD_AUDIT=1) ----
+/* ============================ the guest address space ============================
 
-   The two bugs that cost the most time in this port had one cause: a 64-bit HOST pointer leaking
-   into guest state, where the game then used its low 32 bits as an address. A host pointer is
-   recognisable: the guest space is 0x00000000-0xFFFFFFFF and only a few ranges are mapped, while
-   host pointers on a 64-bit machine sit far above that or are asymmetric after truncation. */
+   ONE translation function, and every access goes through it.
+
+   The EE's address space is not flat: the same 32 MiB of RAM appears through six windows, the
+   hardware registers through two, and the scratchpad sits at a fixed address. The guest hands
+   the port any of those forms, so an access has to be classified before it can be a host pointer.
+
+   ---------------------------------------------------------------------------------------------
+   Guest range                Size      What it is                         Host mapping
+   ---------------------------------------------------------------------------------------------
+   0x00000000-0x01FFFFFF      32 MiB    RAM, physical / KUSEG              the mapped block
+   0x10000000-0x1000FFFF     64 KiB     EE hardware registers, cached      at its own address
+   0x11000000-0x1100FFFF     64 KiB     VU0/VU1 micro and data memory      at its own address
+   0x12000000-0x12001FFF      8 KiB     GS registers, privileged           at its own address
+   0x20000000-0x21FFFFFF      32 MiB    RAM, uncached (KSEG1)              -> 0x08000000 block
+   0x30000000-0x31FFFFFF      32 MiB    RAM, uncached accelerated          -> 0x08000000 block
+   0x70000000-0x70003FFF     16 KiB     scratchpad                         at its own address
+   0x80000000-0x81FFFFFF      32 MiB    RAM, KSEG0 (kernel view)           -> 0x08000000 block
+   0xA0000000-0xA1FFFFFF      32 MiB    RAM, KSEG1 (kernel uncached)       -> 0x08000000 block
+   0xB0000000-0xB000FFFF     64 KiB     EE hardware registers, uncached    at its own address
+   0x38000000-0x39FFFFFF      32 MiB    RAM, the third view the port maps -> 0x08000000 block
+   0xC0000000-0xC1FFFFFF      32 MiB    RAM, KSEG1 accelerated             -> 0x08000000 block
+   ---------------------------------------------------------------------------------------------
+
+   WHY 0x80076000 BECOMES 0x08076000 AND NOT 0x00076000
+
+   0x80076000 is the kernel's view of physical address 0x00076000 — the same byte the game reaches
+   at 0x00076000. The host keeps exactly ONE image of RAM, mapped at 0x08000000 + physical (that
+   base is port/tools/data.py's PS2_RAM_BASE, and data files hold absolute PS2 pointers that land
+   there). Folding to 0x00076000 instead would be wrong twice over: nothing is mapped there (the
+   loader and a non-PIE binary own the low 4 MiB), and if something were, it would be a second
+   copy of RAM that diverges from the mapped one on the first write.
+
+   The fold is `0x08000000 + (guest & 0x01FFFFFF)` — mask, then add. The mask is what removes the
+   window: 0x80076000 & 0x01FFFFFF = 0x00076000, + 0x08000000 = 0x08076000. Identical arithmetic
+   for all six RAM windows, which is why one mask covers them.
+
+   Everything else keeps its address on the host, because the port maps those pages there: the
+   hardware registers at 0x10000000 and their uncached mirror at 0xB0000000, VU memory at
+   0x11000000, the GS at 0x12000000, the scratchpad at 0x70000000. That is also what makes the
+   game's own pointer arithmetic work — it compares, stores and hands these addresses to DMA.
+
+   Anything outside the table is a bug: an un-initialised register, a 64-bit host pointer that
+   leaked into guest state, or a wrong constant. `ps2_guest_address` classifies and aborts, naming
+   the address, instead of dereferencing it. PS2_AUDIT adds the report at the top of the call.
+   ============================================================================= */
+
+#define PS2_RAM_HOST_BASE   0x08000000u
+#define PS2_RAM_BYTES       0x02000000u
+#define PS2_MASK_32BIT      0xFFFFFFFFu
+
+/* The kind of memory a guest address names. */
+enum ps2_region {
+    PS2_REGION_RAM,          /* any of the six windows of the 32 MiB block */
+    PS2_REGION_MMIO,         /* hardware registers, VU memory, GS */
+    PS2_REGION_SCRATCHPAD
+};
+
+typedef struct {
+    enum ps2_region region;
+    uintptr_t host;          /* the address to read or write on this host */
+    uint32_t physical;       /* the address the guest itself would call physical */
+} ps2_mapping;
+
 #if defined(PS2_AUDIT)
 extern void ps2_audit_fail(const char *what, uintptr_t address);
 #define PS2_AUDIT_ADDR(what, a) ps2_audit_fail(what, (uintptr_t)(a))
@@ -64,76 +123,85 @@ extern void ps2_audit_fail(const char *what, uintptr_t address);
 #define PS2_AUDIT_ADDR(what, a) ((void)0)
 #endif
 
-/* True when `address` is an address the guest could legitimately hold: within 32 bits, and either
-   a mapped guest range or below the RAM top. A host pointer that lost its high half usually lands
-   in the hardware-register window or past RAM; both are reported. */
-static inline int ps2_guest_address_plausible(uintptr_t address)
+/* An address outside every window: a port bug, never guest data. */
+void ps2_address_fault(uintptr_t address) __attribute__((noreturn));
+
+/* Classifies one guest address. This is the only place that knows the map. */
+static inline ps2_mapping ps2_guest_address(uintptr_t address)
 {
-    if (address > 0xFFFFFFFFu)
-        return 0;                                   /* a 64-bit host pointer, not a guest one */
-    if (address < 0x02000000u) return 1;            /* RAM, scratchpad-free low memory */
-    if (address - 0x10000000u < 0x02010000u) return 1;  /* hardware registers, VU memory */
-    if (address - 0x20000000u < 0x02000000u) return 1;  /* uncached RAM */
-    if (address - 0x30000000u < 0x02000000u) return 1;  /* uncached accelerated */
-    if (address - 0x70000000u < 0x00004000u) return 1;  /* scratchpad */
-    if (address - 0x80000000u < 0x02000000u) return 1;  /* kernel view */
-    if (address - 0xA0000000u < 0x02000000u) return 1;
-    if (address - 0xC0000000u < 0x02000000u) return 1;
-    return 0;
+    ps2_mapping m;
+    uint32_t a = (uint32_t)address & PS2_MASK_32BIT;
+
+    /* Anything that did not fit in 32 bits is a host pointer that leaked into guest state. */
+    if (address > PS2_MASK_32BIT)
+        ps2_address_fault(address);
+
+    if (a < PS2_RAM_BYTES) {                       /* 0x00000000 KUSEG RAM */
+        m.region = PS2_REGION_RAM; m.physical = a; m.host = PS2_RAM_HOST_BASE + a; return m;
+    }
+    if (a - 0x20000000u < PS2_RAM_BYTES) {         /* 0x20000000 uncached */
+        m.physical = a & 0x1FFFFFFFu; m.region = PS2_REGION_RAM;
+        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
+    }
+    if (a - 0x30000000u < PS2_RAM_BYTES) {         /* 0x30000000 uncached accelerated */
+        m.physical = a & 0x0FFFFFFFu; m.region = PS2_REGION_RAM;
+        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
+    }
+    if (a - 0x80000000u < PS2_RAM_BYTES) {         /* 0x80000000 KSEG0 */
+        m.physical = a & 0x1FFFFFFFu; m.region = PS2_REGION_RAM;
+        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
+    }
+    if (a - 0xA0000000u < PS2_RAM_BYTES) {         /* 0xA0000000 KSEG1 */
+        m.physical = a & 0x1FFFFFFFu; m.region = PS2_REGION_RAM;
+        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
+    }
+    if (a - 0xC0000000u < PS2_RAM_BYTES) {         /* 0xC0000000 KSEG1 accelerated */
+        m.physical = a & 0x0FFFFFFFu; m.region = PS2_REGION_RAM;
+        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
+    }
+    if (a - 0x38000000u < PS2_RAM_BYTES) {         /* 0x38000000: the port maps the block here */
+        m.region = PS2_REGION_RAM; m.physical = a - 0x30000000u;
+        m.host = a - 0x30000000u; return m;
+    }
+    if (a - 0x10000000u < 0x00010000u) {           /* EE registers, cached */
+        m.region = PS2_REGION_MMIO; m.physical = a; m.host = a; return m;
+    }
+    if (a - 0xB0000000u < 0x00010000u) {           /* EE registers, uncached */
+        m.region = PS2_REGION_MMIO; m.physical = a & 0x0FFFFFFFu; m.host = a; return m;
+    }
+    if (a - 0x11000000u < 0x00010000u) {           /* VU0 + VU1 memory */
+        m.region = PS2_REGION_MMIO; m.physical = a; m.host = a; return m;
+    }
+    if (a - 0x12000000u < 0x00002000u) {           /* GS registers */
+        m.region = PS2_REGION_MMIO; m.physical = a; m.host = a; return m;
+    }
+    if (a - 0x70000000u < 0x00004000u) {           /* scratchpad */
+        m.region = PS2_REGION_SCRATCHPAD; m.physical = a; m.host = a; return m;
+    }
+    ps2_address_fault(address);                    /* not classified: a bug, not a slow path */
 }
 
-/* The physical address a guest address stands for, or 0xFFFFFFFF when it is not memory.
-   The PS2 has six 32 MiB views of the same RAM plus the scratchpad; every view folds onto the
-   one block the host maps at 0x08000000. */
-static inline uint32_t ps2_guest_physical(uintptr_t address)
-{
-    uint32_t a = (uint32_t)address;
-    if (a < 0x02000000u)                    return a;
-    if (a - 0x20000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
-    if (a - 0x30000000u < 0x02000000u)      return a & 0x0FFFFFFFu;
-    if (a - 0x80000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
-    if (a - 0xA0000000u < 0x02000000u)      return a & 0x1FFFFFFFu;
-    if (a - 0xC0000000u < 0x02000000u)      return a & 0x0FFFFFFFu;
-    return 0xFFFFFFFFu;
-}
-
+/* The host address of a guest address, classified. */
 static inline uintptr_t ps2_ram_canonical(uintptr_t address)
 {
-    if (!ps2_guest_address_plausible(address))
-        PS2_AUDIT_ADDR("guest memory access", address);
-#if defined(PS2_HOST_FLAT_MEMORY)
-    /* A plain host maps the 32 MiB block once; every guest view becomes a host pointer. Only RAM
-       folds here: the hardware registers and VU memory are mapped at their own addresses. */
-    {
-        uint32_t phys = ps2_guest_physical(address);
-        if (phys != 0xFFFFFFFFu)
-            return 0x08000000u + (phys & 0x01FFFFFFu);
-    }
-#endif
-#if defined(__wasm__)
-    /* one bit test for the two 32-MiB windows (0 and 28) that hold these views */
-    if (__builtin_expect((0x10000001ull >> ((address >> 25) & 63)) & 1, 0)) {
-        if (address - 0x00400000u < 0x01c00000u) return address + 0x08000000u;
-        if (address - 0x38000000u < 0x02000000u) return address - 0x30000000u;
-    }
-#endif
-    return address;
+    return ps2_guest_address(address).host;
 }
-/* Fence mapped VU1/VIF1/GS state before the EE reads or changes it. */
+
+/* Fence mapped VU1/VIF1/GS state before the EE reads or changes it, then translate. */
 static inline uintptr_t ps2_memory_address(uintptr_t address)
 {
-    /* Every fenced range lies in [0x10000000, 0x12001100); one test rejects
-       the RAM and mirror addresses that make up nearly every access. */
-    if (address < 0x10000000u || address >= 0x12001100u)
-        return ps2_ram_canonical(address);
-    if (ps2_graphics_sync && ((address >= 0x11008000 && address < 0x11010000) ||
-         (address >= 0x10003C00 && address < 0x10004000) ||
-         (address >= 0x10005000 && address < 0x10005010) ||
-         (address >= 0x10003000 && address < 0x10003030) ||
-         (address >= 0x12001000 && address < 0x12001100)))
-        ps2_graphics_sync();
-    return address;
+    if (ps2_graphics_sync) {
+        uint32_t a = (uint32_t)address;
+        if ((a >= 0x11008000 && a < 0x11010000) ||
+            (a >= 0x10003C00 && a < 0x10004000) ||
+            (a >= 0x10005000 && a < 0x10005010) ||
+            (a >= 0x10003000 && a < 0x10003030) ||
+            (a >= 0x12001000 && a < 0x12001100))
+            ps2_graphics_sync();
+    }
+    return ps2_guest_address(address).host;
 }
+
 /* INTC_STAT (0x1000F000) holds the EE's pending interrupt causes. The game reads it only to wait
    for VBLANK_START (func_0025AB70, func_0025AC00: sceGsSyncV), so a read lets the kernel run
    time up to the vblank first. */

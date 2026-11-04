@@ -9,10 +9,6 @@
 #include "ps2float.h"
 
 #define GPR(n) ps2.gpr[n].d[0]
-
-/* A `syscall` in recompiled code (port/hle/kernel.c dispatches it). */
-void hle_syscall(uint32_t number);
-uint32_t hle_call_guest(uint32_t guest, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 #define UW(n) ((uint32_t)ps2.gpr[n].d[0])
 #define SW(n) ((int32_t)ps2.gpr[n].d[0])
 #define S32(x) ((uint64_t)(int64_t)(int32_t)(x)) /* 32-bit results are sign-extended */
@@ -22,11 +18,11 @@ uint32_t hle_call_guest(uint32_t guest, uint32_t, uint32_t, uint32_t, uint32_t, 
 #define ADDR(base, off) ((uintptr_t)(uint32_t)(UW(base) + (int32_t)(off)))
 /* ps2_load_address with one test on the way to RAM: INTC_STAT and every fenced range lie in
    [0x10000000, 0x12001100), the only addresses where it does more than ps2_ram_canonical. */
+/* Every guest access of recompiled code goes through the runtime's one translation, which
+   classifies the address and aborts on one that is not guest memory. */
 static inline uintptr_t rc_load_address(uintptr_t address)
 {
-    if (__builtin_expect((uint32_t)address - 0x10000000u < 0x02001100u, 0))
-        return ps2_load_address(address);
-    return ps2_ram_canonical(address);
+    return ps2_load_address(address);
 }
 #define M8(a) (*(int8_t *)rc_load_address(a))
 #define MU8(a) (*(uint8_t *)rc_load_address(a))

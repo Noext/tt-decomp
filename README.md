@@ -14,6 +14,23 @@ tools, and many functions that are identical in both games. Format documentation
 
 **This repository contains no game data.** You need your own copy of the game.
 
+## This fork: the European release (SCES-53372)
+
+The upstream project targets the USA release (SCUS-97502). This fork targets the PAL release,
+`SCES-53372` / `CORE.TT` SHA-1 `83591f00…`, so an owner of the European disc can work on the build
+they actually own. Both are the same source tree compiled months apart, so most of the US work
+carries over; how much was measured, not guessed:
+
+| measurement | result |
+|---|---|
+| US decompilation sources that compile to code in this build | **16,104 / 22,501 = 71.6 %** (8,466 byte-identical) |
+| EU code bytes those sources cover | 662,452 / 4,635,264 = 14.3 % |
+| EU functions reached (splat's boundaries) | 8,730 / 31,619 = 27.6 % |
+| same measurement, USA vs USA (control) | 100 % |
+
+`config/eu_source_map.tsv` maps every carried-over source to its EU address (`tools/src_map.py`
+reproduces it; `tools/eu_map.py` maps a US symbol file onto a US executable).
+
 ## Status
 
 - The executable is understood: `CORE.TT` is Salsa20-encrypted and raw-deflate compressed, loading

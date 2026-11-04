@@ -2,14 +2,14 @@
 # (plus a loader in tools/loaders/ and a knowledge file); the tools themselves stay the same.
 
 [game]
-name = "Tourist Trophy (NTSC-U, SCUS-97502 v1.00)"
-serial = "SCUS-97502"
+name = "Tourist Trophy (PAL, SCES-53372)"
+serial = "SCES-53372"
 # Short name: the WSL working directories and the linked image (tools/project.py BASENAME).
 basename = "tt"
 # CORE.TT is encrypted (Salsa20) and compressed; tools/core2elf.py turns it into this ELF once,
 # and the tools load the ELF (tools/loaders/elf.py) instead of decrypting on every run.
-executable = "orig/SCUS-97502/CORE.TT.elf"
-elf = "orig/SCUS-97502/CORE.TT.elf"
+executable = "orig/SCES-53372/CORE.TT.elf"
+elf = "orig/SCES-53372/CORE.TT.elf"
 splat_config = "config/tt.yaml"
 # tools/loaders/<loader>.py must define load(path) -> (entry, [(address, bytes), ...])
 loader = "elf"

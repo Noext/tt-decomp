@@ -1,9 +1,9 @@
-# splat configuration for CORE.TT (Tourist Trophy, NTSC-U SCUS-97502 v1.00).
+# splat configuration for CORE.TT (Tourist Trophy, PAL SCES-53372).
 # The "rom" is the executable's memory image, made from your own CORE.TT by tools/splat.sh.
 # Everything splat writes (assembly, data, linker script) is generated from your copy of the game
 # and stays out of the repository (build/splat/).
-name: Tourist Trophy (CORE.TT)
-sha1: aa71197b9db18bc2c0543317efbb6d897ec53589
+name: Tourist Trophy PAL (CORE.TT)
+sha1: b69262a4de190166fa26b004f41b9dd90aaea5c6
 options:
   basename: tt
   base_path: ..
@@ -44,7 +44,7 @@ segments:
     vram: 0x00100000
     bss_size: 0x0
     subsegments:
-      - [0x000000, c, core/text]            # code: 0x00100000 - 0x00578cb8 (one .s per function)
-      - [0x478CB8, pad]                     # zero gap between the two loaded segments
-      - [0x478D00, data, core/data]         # data: 0x00578d00 - 0x0061b5fc
-  - [0x51B5FC]
+      - [0x000000, c, core/text]            # code: 0x00100000 - 0x0057C5B0 (one .s per function)
+      - [0x47C5B0, pad]                     # zero gap between the two loaded segments
+      - [0x47C600, data, core/data]         # data: 0x0057C600 - 0x0061F37C
+  - [0x51F37C]

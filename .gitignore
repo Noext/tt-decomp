@@ -11,3 +11,5 @@ tools/compilers/
 tools/bin/
 tools/ext/
 progress/
+# EU work: the US project's own maps, kept for comparison by tools/eu_map.py
+config-us/

@@ -26,6 +26,7 @@ const uint32_t ps2_fixups[][2] __asm__("_ps2_fixups") = {{0}};
 const uint32_t ps2_fixups_end[][2] __asm__("_ps2_fixups_end") = {{0}};
 
 int hle_trace_on;
+int g_trace_sif;
 
 int main(int argc, char **argv)
 {
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
 
     setvbuf(stdout, NULL, _IONBF, 0);
     hle_trace_on = getenv("DHD_TRACE") != NULL;
+    g_trace_sif = getenv("DHD_SIF") != NULL;
     printf("mapping the PS2 address space...\n");
     if (!ps2_memory_init()) {
         fprintf(stderr, "cannot map the PS2 address space\n");

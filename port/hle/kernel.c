@@ -8,6 +8,7 @@
    This follows downhill-revived's port/hle/kernel.c (GPL-3.0-or-later); the structure is kept,
    the syscall bindings are this build's own (port/hle/syscalls_eu.inc). */
 #include "hle.h"
+#include "sif.h"
 #include "ps2asm.h"
 #include "memory.h"
 
@@ -150,6 +151,7 @@ static void reschedule(void)
             if (!any)
                 break;
             kernel_poll();
+            sif_poll();
             if (!ready_best()) {
                 struct timespec ts = {0, 200000};   /* 0.2 ms of host time per idle pass */
                 nanosleep(&ts, NULL);
@@ -606,6 +608,8 @@ extern void hle_boot(void);   /* boot.c: the entry the game's crt0 calls */
 
 void kernel_init(void)
 {
+    extern void sif_init(void);
+    sif_init();
     hle_clock_init();
     getcontext(&scheduler_context);
     scheduler_thread = NULL;
@@ -695,6 +699,9 @@ uint32_t hle_call_guest(uint32_t guest, uint32_t, uint32_t, uint32_t, uint32_t,
 
 void hle_syscall(uint32_t number)
 {
+    /* A safe point: the SIF's queued work runs between guest instructions, never inside one. */
+    extern void sif_poll(void);
+    sif_poll();
 extern int hle_trace_on;
     if (hle_trace_on && number != 64 && number != 116 && number != 100 && number != 120)
         fprintf(stderr, "syscall %u (pc-ish)\n", number);
@@ -750,27 +757,11 @@ extern int hle_trace_on;
         return;
     /* The thread, semaphore and cache calls the SDK's startup makes. They are routed to the host
        implementations above; the kernel already keeps the state they read. */
-    case 16: ps2.gpr[2].d[0] = (uint32_t)iSuspendThread((int)a0); return;
-    case 18: ps2.gpr[2].d[0] = (uint32_t)SuspendThread((int)a0); return;
-    case 20: ps2.gpr[2].d[0] = (uint32_t)ReferThreadStatus((int)a0, (void *)(uintptr_t)a1); return;
-    case 22: ps2.gpr[2].d[0] = (uint32_t)SleepThread(); return;
-    case 32: ps2.gpr[2].d[0] = (uint32_t)iGetThreadPriority((int)a0); return;
-    case 41: ps2.gpr[2].d[0] = (uint32_t)PollSema((int)a0); return;
-    case 47: ps2.gpr[2].d[0] = (uint32_t)GetOsdConfigParam((void *)(uintptr_t)a0); return;
-    case 64: iFlushDataCache((int)a0); ps2.gpr[2].d[0] = (uint32_t)a0; return;
-    case 68: EnableCache((int)a0); ps2.gpr[2].d[0] = (uint32_t)a0; return;
-    case 74: ps2.gpr[2].d[0] = (uint32_t)a0; return;   /* ProbeTLBEntry: the host maps the memory */
-    case 75: ps2.gpr[2].d[0] = (uint32_t)a0; return;   /* iProbeTLBEntry */
-    case 90: ps2.gpr[2].d[0] = (uint32_t)SetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
-                                                  (uint32_t)ps2.gpr[6].d[0]); return;
 
     /* The alarm calls, by the SDK's own numbers (ps2sdk kernel/include/syscallnr.h):
        _SetAlarm/_ReleaseAlarm are 0x18/0x19, SetAlarm/ReleaseAlarm are 0xFC/0xFE, and the
        interrupt-masked i* forms are their negation: -0xFD (iSetAlarm), -0xFF (iReleaseAlarm).
        Reached from MIPS as 0xFFFFFF03 and 0xFFFFFF01. */
-    case 0x18: ps2.gpr[2].d[0] = (uint32_t)SetAlarm((uint32_t)ps2.gpr[4].d[0],
-                                                   (uint32_t)ps2.gpr[5].d[0],
-                                                   (uint32_t)ps2.gpr[6].d[0]); return;
     case 0xFC: ps2.gpr[2].d[0] = (uint32_t)SetAlarm((uint32_t)ps2.gpr[4].d[0],
                                                    (uint32_t)ps2.gpr[5].d[0],
                                                    (uint32_t)ps2.gpr[6].d[0]); return;
@@ -779,6 +770,66 @@ extern int hle_trace_on;
                                                           (uint32_t)ps2.gpr[6].d[0]); return;
     case 0xFE: ps2.gpr[2].d[0] = (uint32_t)CancelAlarm((int)ps2.gpr[4].d[0]); return;
     case 0xFFFFFF01u: ps2.gpr[2].d[0] = (uint32_t)CancelAlarm((int)ps2.gpr[4].d[0]); return;
+    /* ---- the SIF (ssif.h for where these numbers come from) ---- */
+    case 0x77:  /* sceSifSetDma(dmat, count) */
+        ps2.gpr[2].d[0] = (uint32_t)sif_set_dma(a0, (int)a1);
+        return;
+    case 0x76:  /* sceSifDmaStat(id) */
+        ps2.gpr[2].d[0] = (uint32_t)sif_dma_stat((int)a0);
+        return;
+    case 0x78:  /* sceSifSetDChain */
+        ps2.gpr[2].d[0] = 0;
+        return;
+    case 0x79:  /* sceSifSetReg(reg, val) */
+        sif_set_reg(a0, a1);
+        ps2.gpr[2].d[0] = 0;
+        return;
+    case 0x7A:  /* sceSifGetReg(reg) */
+        ps2.gpr[2].d[0] = sif_get_reg(a0);
+        return;
+    case 0x12:  /* AddDmacHandler(channel, handler, next) */
+        ps2.gpr[2].d[0] = (uint32_t)sif_add_dmac_handler((int)a0, a1);
+        return;
+    case 0x13:  /* RemoveDmacHandler(channel, id) */
+        ps2.gpr[2].d[0] = (uint32_t)a1;
+        return;
+    case 0x16:  /* EnableDmac(channel) */
+        sif_enable_dmac((int)a0);
+        ps2.gpr[2].d[0] = 0;
+        return;
+    case 0x17:  /* DisableDmac(channel) */
+        sif_enable_dmac(-1);
+        ps2.gpr[2].d[0] = 0;
+        return;
+    /* Thread and semaphore calls, at the numbers ps2sdk's syscallnr.h gives them:
+       SuspendThread -0x38 (0xFFFFFFC8), ReferThreadStatus 0x30, SleepThread 0x32,
+       PollSema -0x3A (0xFFFFFFC6), GetOsdConfigParam 0x2F. */
+    case 0xFFFFFFC8u: ps2.gpr[2].d[0] = (uint32_t)SuspendThread((int)a0); return;
+    case 0x30: ps2.gpr[2].d[0] = (uint32_t)ReferThreadStatus((int)a0, (void *)(uintptr_t)a1); return;
+    case 0x32: ps2.gpr[2].d[0] = (uint32_t)SleepThread(); return;
+    case 0xFFFFFFC6u: ps2.gpr[2].d[0] = (uint32_t)PollSema((int)a0); return;
+    case 0x2F: ps2.gpr[2].d[0] = (uint32_t)GetOsdConfigParam((void *)(uintptr_t)a0); return;
+    /* Cache: iFlushCache -0x19, FlushCache 0x64, EnableCache 0x44, DisableCache 0x45. */
+    case 0x64: FlushCache((int)a0); ps2.gpr[2].d[0] = 0; return;
+    case 0x44: EnableCache((int)a0); ps2.gpr[2].d[0] = 0; return;
+    case 0x45: DisableCache((int)a0); ps2.gpr[2].d[0] = 0; return;
+    /* TLB probes: the host maps the memory, so they answer with the argument. */
+    case 0x58: ps2.gpr[2].d[0] = (uint32_t)a0; return;
+    case 0x5A: { /* Copy(dest, src, size): the game copies code or data into kernel memory.
+                    Whatever it copies to 0x8007_xxxx is a handler it will install and call, so the
+                    log names both ends; the port needs to know which function that is to map it
+                    back to its recompiled body. */
+        uint32_t dst = (uint32_t)ps2.gpr[4].d[0], src = (uint32_t)ps2.gpr[5].d[0];
+        uint32_t size = (uint32_t)ps2.gpr[6].d[0];
+        fprintf(stderr, "Copy(dst=0x%08x, src=0x%08x, size=%u)\n", dst, src, size);
+        if (size && size < (uint32_t)PS2_RAM_SIZE) {
+            memmove((void *)(uintptr_t)ps2_ram_canonical(dst),
+                    (void *)(uintptr_t)ps2_ram_canonical(src), size);
+            ps2.gpr[2].d[0] = dst;
+        } else {
+            ps2.gpr[2].d[0] = 0;
+        }
+        return; }
     case 0x5B:   /* GetEntryAddress(n): the handler installed for syscall n (0 if none).
                     ps2sdk's libosd calls it right after Setup(0x83, ...) to patch a table slot. */
         ps2.gpr[2].d[0] = hle_syscall_table_entry(a0);

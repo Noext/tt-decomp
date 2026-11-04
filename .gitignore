@@ -13,3 +13,13 @@ tools/ext/
 progress/
 # EU work: the US project's own maps, kept for comparison by tools/eu_map.py
 config-us/
+
+# Build output: the port's objects and its binary are built locally, never committed.
+port/*.o
+port/**/*.o
+port/bootport
+port/tests/test_thread
+port/tests/test_sync
+port/tests/test_recompiled
+port/tests/test_map
+port/tests/*.o

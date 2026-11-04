@@ -13,7 +13,7 @@ RCFLAGS := -O1 -w -fPIE -fPIC -D_GNU_SOURCE -DPS2_HOST_FLAT_MEMORY \
 LDFLAGS := -lm
 
 HOST_SRC := runtime/vu0_interp.c runtime/ps2asm.c runtime/memory.c runtime/recomp.c \
-            gs/gs.c gs/memory.c hle/vif.c hle/kernel.c hle/syscalls.c hle/entry_table.c \
+            gs/gs.c gs/memory.c hle/vif.c hle/kernel.c hle/syscalls.c hle/entry_table.c hle/sif.c \
             hle/data_labels.c hle/unrecompiled.c \
             host/host_linux.c host/port_glue.c host/boot_main.c
 HOST_OBJ := $(HOST_SRC:.c=.o)

@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 int hle_verbose;
+extern int hle_trace_on;
 
 /* The kernel's dispatch (kernel.c): every wrapper reaches it with its number. */
 void hle_syscall(uint32_t number);

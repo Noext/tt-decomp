@@ -951,14 +951,6 @@ __attribute__((weak)) uint32_t func_005077A0(uint32_t a0, uint32_t a1, uint32_t 
     return 0;
 }
 
-extern ps2_fn8 func_00507888;
-__attribute__((weak)) uint32_t func_00507888(uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3,
-                                          uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7)
-{
-    fprintf(stderr, "func_00507888: no recompiled function\n");
-    (void)a0; (void)a1; (void)a2; (void)a3; (void)a4; (void)a5; (void)a6; (void)a7;
-    return 0;
-}
 
 extern ps2_fn8 func_00509B80;
 __attribute__((weak)) uint32_t func_00509B80(uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3,
@@ -4756,5 +4748,10 @@ __attribute__((weak)) uint32_t func_00100178(uint32_t a0, uint32_t a1, uint32_t 
 
 extern ps2_fn8 func_00100228;
 __attribute__((weak)) uint32_t func_00100228(uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3,
+                                              uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7)
+{ (void)a0;(void)a1;(void)a2;(void)a3;(void)a4;(void)a5;(void)a6;(void)a7; return 0; }
+
+extern ps2_fn8 func_00507888;
+__attribute__((weak)) uint32_t func_00507888(uint32_t a0, uint32_t a1, uint32_t a2, uint32_t a3,
                                               uint32_t a4, uint32_t a5, uint32_t a6, uint32_t a7)
 { (void)a0;(void)a1;(void)a2;(void)a3;(void)a4;(void)a5;(void)a6;(void)a7; return 0; }

@@ -25,6 +25,8 @@ uint8_t *guest_base;                 /* the guest's address 0 as this host sees 
 const uint32_t ps2_fixups[][2] __asm__("_ps2_fixups") = {{0}};
 const uint32_t ps2_fixups_end[][2] __asm__("_ps2_fixups_end") = {{0}};
 
+int hle_trace_on;
+
 int main(int argc, char **argv)
 {
     if (argc < 3) {
@@ -39,6 +41,7 @@ int main(int argc, char **argv)
             entry = (uint32_t)strtoul(argv[i + 1], NULL, 0);
 
     setvbuf(stdout, NULL, _IONBF, 0);
+    hle_trace_on = getenv("DHD_TRACE") != NULL;
     printf("mapping the PS2 address space...\n");
     if (!ps2_memory_init()) {
         fprintf(stderr, "cannot map the PS2 address space\n");
@@ -62,6 +65,9 @@ int main(int argc, char **argv)
     printf("entry table ready\n");
     printf("running...\n");
     fflush(stdout);
+    if (getenv("DHD_TRACE"))
+        fprintf(stderr, "entry=0x%08x sp=0x%08x gp=0x%08x\n", entry,
+                (unsigned)ps2.gpr[29].d[0], (unsigned)ps2.gpr[28].d[0]);
     kernel_run(entry);
     printf("the game returned\n");
     return 0;

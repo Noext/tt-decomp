@@ -321,6 +321,12 @@ class Func:
         EE_DIV, EE_SQRT, EE_CVT_W = ('ps2_ee_div', 'ps2_ee_sqrt', 'ps2_float_to_int') if WASM_EMIT else             ('ps2_fdiv', 'ps2_fsqrt', 'ps2_cvt_w_s')
         if op in ('nop', 'sync', 'sync.p', 'sync.l', 'break', 'ssnop'):
             return
+        if op == 'eret':
+            # The SDK uses eret as a thread start: mfc0/mtc0 set up SR, ERROREPC is set to $ra,
+            # then eret "returns" into it. On the host that is calling the guest address.
+            L.append('GPR(2) = S32(hle_call_guest(UW(31), UW(4), UW(5), UW(6), '
+                     'UW(7), UW(8), UW(9), UW(10), UW(11)));')
+            return
         if op == 'syscall':
             # The PS2 raises the kernel here; the port calls its own kernel with the number the
             # SDK left in $v1. The call clobbers the caller-saved registers, as the real one does.

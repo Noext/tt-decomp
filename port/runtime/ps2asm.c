@@ -72,7 +72,7 @@ typedef struct {
 enum {
     NOP, LQ, SQ, LQC2, SQC2, LWC1, SWC1, MFC1, MTC1, QMFC2, QMTC2, CFC2, CTC2, LUI, LI, DADDU, ADDU, MULTU,
     PEXTLW, PEXTUW, PCPYLD, PCPYUD, PROT3W, PADDW, PSUBH, PCGTH, PEXTLH, PPACH, PSRAW, PMULTH, PMFHI, PCPYH,
-    PAND, PNOR, PXOR, PSUBB, PSUBW, PADDH, PMINH, PMAXH, PPACB,
+    PAND, PNOR, PXOR, PSUBB, PSUBW, PADDH, PMINH, PMAXH, PPACB, PLZCW,
     PMFLO,
     F_ADD, F_SUB, F_MUL, F_DIV, F_SQRT, F_RSQRT, F_ABS, F_NEG, F_MOV, F_MAX, F_MIN,
     F_ADDA, F_SUBA, F_MULA, F_MADDA, F_MSUBA, F_MADD, F_MSUB,
@@ -270,7 +270,7 @@ static const Name SIMPLE[] = {
     {"mfc1", MFC1}, {"mtc1", MTC1}, {"qmfc2", QMFC2}, {"qmtc2", QMTC2}, {"cfc2", CFC2}, {"ctc2", CTC2},
     {"lui", LUI}, {"li", LI}, {"daddu", DADDU}, {"addu", ADDU}, {"multu", MULTU},
     {"pextlw", PEXTLW}, {"pextuw", PEXTUW}, {"pcpyld", PCPYLD}, {"pcpyud", PCPYUD}, {"prot3w", PROT3W},
-    {"paddw", PADDW}, {"padduw", PADDW}, {"mtsah", NOP}, {"mtsab", NOP}, {"ctc1", NOP}, {"cfc1", NOP}, {"psubh", PSUBH}, {"pcgth", PCGTH}, {"pextlh", PEXTLH}, {"ppach", PPACH},
+    {"paddw", PADDW}, {"padduw", PADDW}, {"plzcw", PLZCW}, {"mtsah", NOP}, {"mtsab", NOP}, {"ctc1", NOP}, {"cfc1", NOP}, {"psubh", PSUBH}, {"pcgth", PCGTH}, {"pextlh", PEXTLH}, {"ppach", PPACH},
     {"psraw", PSRAW}, {"pmulth", PMULTH}, {"pmfhi", PMFHI}, {"pmflo", PMFLO}, {"pcpyh", PCPYH},
     {"pand", PAND}, {"pnor", PNOR}, {"pxor", PXOR}, {"psubb", PSUBB}, {"psubw", PSUBW}, {"paddh", PADDH},
     {"pminh", PMINH}, {"pmaxh", PMAXH}, {"ppacb", PPACB},
@@ -778,6 +778,9 @@ PS2_ASM_INLINE void run_ins(Prog *p, const Ins *in, ps2_op *ops)
             for (i = 0; i < 8; i++)
                 switch (in->op) {
                 case PADDW: if (i < 4) d.w[i] = s.w[i] + t.w[i]; break;
+                case PLZCW: if (i < 4) { uint32_t v = s.w[i]; int n = 0;
+                    if (!v) n = 32; else while (!(v & (0x80000000u >> n)) && n < 32) n++;
+                    d.w[i] = (uint32_t)(n - 1); } break;
                 case PSUBH: d.h[i] = (uint16_t)(s.h[i] - t.h[i]); break;
                 case PCGTH: d.h[i] = s.sh[i] > t.sh[i] ? 0xFFFF : 0; break;
                 case PEXTLH: d.h[i] = (i & 1 ? s : t).h[i / 2]; break; /* t0 s0 t1 s1 .. */

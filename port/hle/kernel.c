@@ -141,12 +141,27 @@ static void reschedule(void)
     in_kernel = 1;
     for (;;) {
         Thread *next = ready_best();
-        if (!next)
-            break;
+        if (!next) {
+            /* Every thread is waiting: the PS2 keeps running its clock, so alarms and sleeps end
+               and a thread becomes ready. Only when nothing is left at all does the kernel stop. */
+            int any = 0;
+            for (int i = 1; i < MAX_THREADS; i++)
+                any |= threads[i].used && threads[i].status != TS_DORMANT;
+            if (!any)
+                break;
+            kernel_poll();
+            if (!ready_best()) {
+                struct timespec ts = {0, 200000};   /* 0.2 ms of host time per idle pass */
+                nanosleep(&ts, NULL);
+            }
+            continue;
+        }
         next->status = TS_RUN;
         current = next;
         regs_load(thread_id(next));
         swapcontext(&scheduler_context, &next->context);
+        if (in_kernel)   /* a fiber called reschedule(): go round again */
+            in_kernel = 1;
     }
     current = NULL;
     in_kernel = 0;
@@ -218,6 +233,12 @@ int GetMemorySize(void) { return PS2_RAM_SIZE; }
 void FlushCache(int mode) { (void)mode; }              /* the host's memory is coherent */
 void iFlushCache(int mode) { (void)mode; }
 void FlushCacheAll(void) {}
+void iFlushDataCache(int mode) { (void)mode; }
+void FlushDataCache(int mode) { (void)mode; }
+void iFlushInstructionCache(int mode) { (void)mode; }
+void FlushInstructionCache(int mode) { (void)mode; }
+void EnableCache(int mode) { (void)mode; }
+void DisableCache(int mode) { (void)mode; }
 void iFlushCacheAll(void) {}
 void SyncCache(int mode) { (void)mode; }
 void iSyncCache(int mode) { (void)mode; }
@@ -640,6 +661,9 @@ uint32_t hle_setup_thread(uint32_t gp, uint32_t stack, uint32_t stack_size)
 
 void hle_syscall(uint32_t number)
 {
+extern int hle_trace_on;
+    if (hle_trace_on && number != 64 && number != 116 && number != 100 && number != 120)
+        fprintf(stderr, "syscall %u (pc-ish)\n", number);
     uint32_t a0 = (uint32_t)ps2.gpr[4].d[0], a1 = (uint32_t)ps2.gpr[5].d[0];
     switch (number) {
     case 0x3C:  /* SetupThread(gp, stack, stack_size) */
@@ -654,6 +678,23 @@ void hle_syscall(uint32_t number)
     case 0x7F:  /* GetMemorySize */
         ps2.gpr[2].d[0] = PS2_RAM_SIZE;
         return;
+    /* The thread, semaphore and cache calls the SDK's startup makes. They are routed to the host
+       implementations above; the kernel already keeps the state they read. */
+    case 16: ps2.gpr[2].d[0] = (uint32_t)iSuspendThread((int)a0); return;
+    case 18: ps2.gpr[2].d[0] = (uint32_t)SuspendThread((int)a0); return;
+    case 20: ps2.gpr[2].d[0] = (uint32_t)ReferThreadStatus((int)a0, (void *)(uintptr_t)a1); return;
+    case 22: ps2.gpr[2].d[0] = (uint32_t)SleepThread(); return;
+    case 32: ps2.gpr[2].d[0] = (uint32_t)iGetThreadPriority((int)a0); return;
+    case 41: ps2.gpr[2].d[0] = (uint32_t)PollSema((int)a0); return;
+    case 47: ps2.gpr[2].d[0] = (uint32_t)GetOsdConfigParam((void *)(uintptr_t)a0); return;
+    case 64: iFlushDataCache((int)a0); ps2.gpr[2].d[0] = (uint32_t)a0; return;
+    case 68: EnableCache((int)a0); ps2.gpr[2].d[0] = (uint32_t)a0; return;
+    case 74: ps2.gpr[2].d[0] = (uint32_t)a0; return;   /* ProbeTLBEntry: the host maps the memory */
+    case 75: ps2.gpr[2].d[0] = (uint32_t)a0; return;   /* iProbeTLBEntry */
+    case 90: ps2.gpr[2].d[0] = (uint32_t)SetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
+                                                  (uint32_t)ps2.gpr[6].d[0]); return;
+    case 91: ps2.gpr[2].d[0] = (uint32_t)iSetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
+                                                   (uint32_t)ps2.gpr[6].d[0]); return;
     case 0x83: {  /* FindAddress(start, end, value): the first word of the window equal to the
                      value, compared through the kernel alias. Returns its address, or 0.
 

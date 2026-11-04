@@ -54,3 +54,19 @@ syscall that has not been implemented yet, and the log says which.
 | Timers | not started |
 | I/O (CDVD, pad, MC, SIF) | not started |
 | Graphics | not started |
+
+## Implemented (2026-11-04)
+
+`port/hle/kernel.c` — memory and cache (no-ops, the host's memory is coherent; `GetMemorySize`
+reports 32 MB), threads as host fibers with one OS thread and a priority ready queue, semaphores
+(create/delete/signal/wait/poll/status), sleeps and thread wakeups, alarms, and the EE clock.
+The register file (`ps2asm.h`'s `ps2`) is saved and restored per fiber.
+
+`port/tests/` holds the HLE's own tests, which need no game data:
+
+| test | proves |
+|---|---|
+| `test_thread` | a thread's entry runs, its result lands in `$v0`, the fiber returns to the scheduler |
+| `test_sync` | two threads with different priorities; A waits on a semaphore, B signals, A resumes before B continues (`order=2 1`) |
+
+    cd port/tests && make test

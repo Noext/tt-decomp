@@ -604,8 +604,71 @@ void kernel_run(uint32_t entry)
 
 /* A recompiled `syscall 0`: dispatch the number the SDK left in $v1. Only the calls the port
    implements do anything; the rest are logged once and return 0, as the stubs do. */
+/* The heap the SDK hands out: a bump allocator over guest RAM. The game calls FindAddress (131)
+   for every block it needs; returning the same pointer makes its allocator loop forever, which is
+   what the first boot did. Layout and defaults follow PS2Recomp's System.cpp (GPL-3.0). */
+#define GUEST_HEAP_LIMIT 0x01F00000u
+static uint32_t heap_limit = GUEST_HEAP_LIMIT;
+
+uint32_t hle_setup_heap(uint32_t base, uint32_t size)
+{
+    uint32_t start = (base + 0xFu) & ~0xFu;
+    heap_limit = GUEST_HEAP_LIMIT;
+    if (size && size != 0xFFFFFFFFu) {
+        uint64_t end = (uint64_t)start + size;
+        if (end < heap_limit)
+            heap_limit = (uint32_t)end;
+    }
+    if (heap_limit <= start)
+        heap_limit = GUEST_HEAP_LIMIT;
+    return start;
+}
+
+uint32_t hle_heap_limit(void) { return heap_limit; }
+
+/* SetupThread(gp, stack, stack_size, args, root): $a0 is the GP, $a1 the stack BASE, $a2 the size.
+   The order is the SDK's, not the obvious one (PS2Recomp's System.cpp documents it). Returns the
+   stack pointer the thread starts with: the top of the named range, else the default top. */
+uint32_t hle_setup_thread(uint32_t gp, uint32_t stack, uint32_t stack_size)
+{
+    if (gp)
+        ps2.gpr[28].d[0] = gp;
+    if (!stack)
+        return 0x01F00000u;
+    return stack_size ? stack + stack_size : stack;
+}
+
 void hle_syscall(uint32_t number)
 {
-    (void)number;
-    hle_log("syscall %u raised in recompiled code\n", number);
+    uint32_t a0 = (uint32_t)ps2.gpr[4].d[0], a1 = (uint32_t)ps2.gpr[5].d[0];
+    switch (number) {
+    case 0x3C:  /* SetupThread(gp, stack, stack_size) */
+        ps2.gpr[2].d[0] = hle_setup_thread(a0, a1, (uint32_t)ps2.gpr[6].d[0]);
+        return;
+    case 0x3D:  /* SetupHeap(base, size) */
+        ps2.gpr[2].d[0] = hle_setup_heap(a0, a1);
+        return;
+    case 0x3E:  /* EndOfHeap */
+        ps2.gpr[2].d[0] = hle_heap_limit();
+        return;
+    case 0x7F:  /* GetMemorySize */
+        ps2.gpr[2].d[0] = PS2_RAM_SIZE;
+        return;
+    case 0x83: {  /* FindAddress(start, end, target): scan [start,end) for `target`, 4 bytes at a
+                     time, and return the address that holds it (0 when none). The SDK's allocator
+                     uses this to locate its own block in a region it was handed. */
+        uint32_t start = (a0 + 3u) & ~3u, end = (uint32_t)ps2.gpr[5].d[0];
+        uint32_t target = (uint32_t)ps2.gpr[6].d[0];
+        uint32_t found = 0;
+        for (uint32_t at = start; at + 4 <= end; at += 4) {
+            uint32_t word;
+            memcpy(&word, (void *)(uintptr_t)ps2_ram_canonical(at), 4);
+            if (word == target) { found = at; break; }
+        }
+        ps2.gpr[2].d[0] = found;
+        return; }
+    default:
+        hle_log("syscall %u raised in recompiled code\n", number);
+        return;
+    }
 }

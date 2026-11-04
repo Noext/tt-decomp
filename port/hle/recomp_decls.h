@@ -6,9 +6,6 @@ typedef uint32_t ps2_fn8(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint3
 
 ps2_fn8 func_00100000;
 ps2_fn8 func_00100008;
-ps2_fn8 func_0010012C;
-ps2_fn8 func_00100158;
-ps2_fn8 func_00100178;
 ps2_fn8 func_00100220;
 ps2_fn8 func_00100240;
 ps2_fn8 func_00100250;

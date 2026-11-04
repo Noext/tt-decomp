@@ -72,8 +72,6 @@ extern void (*ps2_graphics_sync)(void);
    0x80000000-0x81FFFFFF      32 MiB    RAM, KSEG0 (kernel view)           -> 0x08000000 block
    0xA0000000-0xA1FFFFFF      32 MiB    RAM, KSEG1 (kernel uncached)       -> 0x08000000 block
    0xB0000000-0xB000FFFF     64 KiB     EE hardware registers, uncached    at its own address
-   0x38000000-0x39FFFFFF      32 MiB    RAM, the third view the port maps -> 0x08000000 block
-   0xC0000000-0xC1FFFFFF      32 MiB    RAM, KSEG1 accelerated             -> 0x08000000 block
    ---------------------------------------------------------------------------------------------
 
    WHY 0x80076000 BECOMES 0x08076000 AND NOT 0x00076000
@@ -154,14 +152,6 @@ static inline ps2_mapping ps2_guest_address(uintptr_t address)
     if (a - 0xA0000000u < PS2_RAM_BYTES) {         /* 0xA0000000 KSEG1 */
         m.physical = a & 0x1FFFFFFFu; m.region = PS2_REGION_RAM;
         m.host = PS2_RAM_HOST_BASE + m.physical; return m;
-    }
-    if (a - 0xC0000000u < PS2_RAM_BYTES) {         /* 0xC0000000 KSEG1 accelerated */
-        m.physical = a & 0x0FFFFFFFu; m.region = PS2_REGION_RAM;
-        m.host = PS2_RAM_HOST_BASE + m.physical; return m;
-    }
-    if (a - 0x38000000u < PS2_RAM_BYTES) {         /* 0x38000000: the port maps the block here */
-        m.region = PS2_REGION_RAM; m.physical = a - 0x30000000u;
-        m.host = a - 0x30000000u; return m;
     }
     if (a - 0x10000000u < 0x00010000u) {           /* EE registers, cached */
         m.region = PS2_REGION_MMIO; m.physical = a; m.host = a; return m;

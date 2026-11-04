@@ -711,8 +711,21 @@ extern int hle_trace_on;
        handlers into RAM (0x8007xxxx, the SDK's own copied code); calling those means running
        un-recompiled MIPS, which is not what this step does, so they fall through to the native
        implementation and the table keeps the value for whoever reads it back. */
-    if (number != 0x83) {               /* FindAddress is the call that LOCATES handlers, not one */
+    if (number != 0x83 && number != 0x5B) {   /* not FindAddress (0x83), not GetEntryAddress (0x5B) */
         uint32_t handler = hle_syscall_table_entry(number);
+        /* The table has 256 slots but the SDK's own entries go higher: it numbers 0xFC..0xFF as
+           "negative" syscall ids and 300 appears in this game's table. Those are data the game
+           writes and reads back, not handlers to call, so the native path answers them — with a
+           log, because a real handler there would be silently ignored otherwise. */
+        if (handler && number >= 0x80u && number != 0x83u) {
+            static int warned;
+            if (!warned) {
+                warned = 1;
+                fprintf(stderr, "syscall %u: table holds 0x%08x, which is outside the recompiled "
+                                "image; the native implementation answers\n", number, handler);
+            }
+            handler = 0;
+        }
         if (handler && handler >= 0x00100000u && handler < 0x0057C5B0u) {
             uint32_t r = hle_call_guest(handler, a0, a1, (uint32_t)ps2.gpr[6].d[0],
                                         (uint32_t)ps2.gpr[7].d[0], (uint32_t)ps2.gpr[8].d[0],
@@ -750,8 +763,26 @@ extern int hle_trace_on;
     case 75: ps2.gpr[2].d[0] = (uint32_t)a0; return;   /* iProbeTLBEntry */
     case 90: ps2.gpr[2].d[0] = (uint32_t)SetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
                                                   (uint32_t)ps2.gpr[6].d[0]); return;
-    case 91: ps2.gpr[2].d[0] = (uint32_t)iSetAlarm(a0, (uint32_t)ps2.gpr[5].d[0],
+
+    /* The alarm calls, by the SDK's own numbers (ps2sdk kernel/include/syscallnr.h):
+       _SetAlarm/_ReleaseAlarm are 0x18/0x19, SetAlarm/ReleaseAlarm are 0xFC/0xFE, and the
+       interrupt-masked i* forms are their negation: -0xFD (iSetAlarm), -0xFF (iReleaseAlarm).
+       Reached from MIPS as 0xFFFFFF03 and 0xFFFFFF01. */
+    case 0x18: ps2.gpr[2].d[0] = (uint32_t)SetAlarm((uint32_t)ps2.gpr[4].d[0],
+                                                   (uint32_t)ps2.gpr[5].d[0],
                                                    (uint32_t)ps2.gpr[6].d[0]); return;
+    case 0xFC: ps2.gpr[2].d[0] = (uint32_t)SetAlarm((uint32_t)ps2.gpr[4].d[0],
+                                                   (uint32_t)ps2.gpr[5].d[0],
+                                                   (uint32_t)ps2.gpr[6].d[0]); return;
+    case 0xFFFFFF03u: ps2.gpr[2].d[0] = (uint32_t)SetAlarm((uint32_t)ps2.gpr[4].d[0],
+                                                          (uint32_t)ps2.gpr[5].d[0],
+                                                          (uint32_t)ps2.gpr[6].d[0]); return;
+    case 0xFE: ps2.gpr[2].d[0] = (uint32_t)CancelAlarm((int)ps2.gpr[4].d[0]); return;
+    case 0xFFFFFF01u: ps2.gpr[2].d[0] = (uint32_t)CancelAlarm((int)ps2.gpr[4].d[0]); return;
+    case 0x5B:   /* GetEntryAddress(n): the handler installed for syscall n (0 if none).
+                    ps2sdk's libosd calls it right after Setup(0x83, ...) to patch a table slot. */
+        ps2.gpr[2].d[0] = hle_syscall_table_entry(a0);
+        return;
     case 0x83: {  /* FindAddress(start, end, value): the first word of [start,end) equal to the
                      value, compared through the kernel alias. Returns its address, 0 if absent.
                      Follows PS2Recomp's computeBuiltinFindAddressResult (GPL-3.0). */

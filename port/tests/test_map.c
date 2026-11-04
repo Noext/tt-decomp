@@ -82,8 +82,6 @@ static void test_ram_windows(void)
     EXPECT_HOST(0xA0076000u, 0x08076000u);
     EXPECT_HOST(0x20076000u, 0x08076000u);
     EXPECT_HOST(0x30076000u, 0x08076000u);
-    EXPECT_HOST(0xC0076000u, 0x08076000u);
-    EXPECT_HOST(0x38076000u, 0x08076000u);
 }
 
 /* A KSEG address is the low address OR'd with the window bit, and folds the same way. */
@@ -146,6 +144,33 @@ static void test_unmapped_faults(void)
     EXPECT_FAULT(0xDEADBEEFu);
 }
 
+/* A host pointer truncated to 32 bits is indistinguishable from a guest address by width, so the
+   map must reject it by RANGE: 0x08076000 is where this host puts the guest's RAM, and the guest
+   must never be able to hand it back as an address. */
+static void test_host_image_address_faults(void)
+{
+    EXPECT_FAULT(0x08076000u);   /* the host's own address of guest 0x00076000 */
+    EXPECT_FAULT(0x08000000u);   /* the base of that mapping */
+    EXPECT_FAULT(0x09FFFFFFu);   /* its last byte */
+}
+
+/* 0x38000000 is NOT a PS2 region: it is where one host chose to mirror RAM. It must not be
+   accepted as a guest address; the game's 0x38xxxxxx words are input-encoder bit patterns. */
+static void test_no_port_private_windows(void)
+{
+    EXPECT_FAULT(0x38000000u);
+    EXPECT_FAULT(0x38076000u);
+    EXPECT_FAULT(0x38520001u);   /* an encoder pattern that looks like a pointer */
+}
+
+/* 0xC0000000 is KSSEG: a TLB-mapped supervisor segment with no direct physical backing. Until the
+   port has a TLB it must fault, not silently alias RAM (ps2tek, EE segment layout). */
+static void test_ksseg_is_not_ram(void)
+{
+    EXPECT_FAULT(0xC0000000u);
+    EXPECT_FAULT(0xC0076000u);
+}
+
 /* A host pointer that leaked into guest state: above 32 bits, always a fault. */
 static void test_host_pointer_faults(void)
 {
@@ -173,8 +198,7 @@ static void test_map_is_closed(void)
 {
     static const struct { uint32_t base, size; } windows[] = {
         {0x00000000u, 0x02000000u}, {0x20000000u, 0x02000000u}, {0x30000000u, 0x02000000u},
-        {0x80000000u, 0x02000000u}, {0xA0000000u, 0x02000000u}, {0xC0000000u, 0x02000000u},
-        {0x38000000u, 0x02000000u},
+        {0x80000000u, 0x02000000u}, {0xA0000000u, 0x02000000u},
         {0x10000000u, 0x00010000u}, {0xB0000000u, 0x00010000u},
         {0x11000000u, 0x00010000u}, {0x12000000u, 0x00002000u},
         {0x70000000u, 0x00004000u},
@@ -201,6 +225,9 @@ int main(void)
     test_vu_and_gs();
     test_scratchpad();
     test_unmapped_faults();
+    test_host_image_address_faults();
+    test_no_port_private_windows();
+    test_ksseg_is_not_ram();
     test_host_pointer_faults();
     test_helpers_agree();
     test_map_is_closed();

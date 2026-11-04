@@ -70,3 +70,23 @@ The register file (`ps2asm.h`'s `ps2`) is saved and restored per fiber.
 | `test_sync` | two threads with different priorities; A waits on a semaphore, B signals, A resumes before B continues (`order=2 1`) |
 
     cd port/tests && make test
+
+## A real recompiled function runs (2026-11-04)
+
+`port/tests/test_recompiled.c` takes `build/port/recomp/func_003AA338.c` — a function `recomp.py`
+translated from the EU image's own MIPS — maps 32 MB of guest RAM at `0x08000000`, and calls it.
+It returns and its stack pointer comes back to where it started.
+
+That needed one thing the upstream runtime does not have: **`PS2_HOST_FLAT_MEMORY`**. The
+downhill-revived hosts map the guest space with OS-level views of the same bytes; a plain Linux
+host has no such views, so `ps2asm.h` now maps every guest address to `0x08000000 + (address &
+0x01FFFFFF)` when that macro is defined. Without it a load through `$sp` dereferenced the guest
+address itself.
+
+## Still open
+
+- **The VU1 microcode has not been found.** The game does not write VIF1 registers directly: the
+  library code it ships does, and that code has not been traced yet. 31 `lui 0x1100` sites exist in
+  the image (VU1 memory); they need following.
+- **`TT.VOL`** has no reader.
+- **I/O**: CDVD, pad, memory card and SIF are stubs.

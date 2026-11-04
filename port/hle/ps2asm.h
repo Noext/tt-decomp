@@ -53,6 +53,10 @@ extern void (*ps2_graphics_sync)(void);
    builds pass host pointers. */
 static inline uintptr_t ps2_ram_canonical(uintptr_t address)
 {
+#if defined(PS2_HOST_FLAT_MEMORY)
+    /* A plain host maps the guest at its PS2 base; every guest address becomes a host pointer. */
+    return 0x08000000u + ((uint32_t)address & 0x01FFFFFFu);
+#endif
 #if defined(__wasm__)
     /* one bit test for the two 32-MiB windows (0 and 28) that hold these views */
     if (__builtin_expect((0x10000001ull >> ((address >> 25) & 63)) & 1, 0)) {
@@ -63,12 +67,23 @@ static inline uintptr_t ps2_ram_canonical(uintptr_t address)
     return address;
 }
 /* Fence mapped VU1/VIF1/GS state before the EE reads or changes it. */
+/* A plain host (no OS-level views of the guest space): RAM at its PS2 base plus 0x08000000. */
+static inline uintptr_t ps2_host_address(uintptr_t address)
+{
+#if defined(PS2_HOST_FLAT_MEMORY)
+    if (address - 0x08000000u < 0x02000000u) return address;   /* already a host pointer */
+    return 0x08000000u + (address & 0x01FFFFFFu);
+#else
+    return address;
+#endif
+}
+
 static inline uintptr_t ps2_memory_address(uintptr_t address)
 {
     /* Every fenced range lies in [0x10000000, 0x12001100); one test rejects
        the RAM and mirror addresses that make up nearly every access. */
     if (address < 0x10000000u || address >= 0x12001100u)
-        return ps2_ram_canonical(address);
+        return ps2_host_address(ps2_ram_canonical(address));
     if (ps2_graphics_sync && ((address >= 0x11008000 && address < 0x11010000) ||
          (address >= 0x10003C00 && address < 0x10004000) ||
          (address >= 0x10005000 && address < 0x10005010) ||

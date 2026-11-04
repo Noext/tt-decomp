@@ -1,0 +1,26 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+u8 *func_0050B100(u8 *arg0, s32 *arg1) {
+    s32 temp_v0;
+    s32 var_t0;
+    u32 var_a3;
+    u8 *var_a0;
+    u8 temp_a2;
+
+    var_a0 = arg0;
+    var_a3 = 0;
+    var_t0 = 0;
+    do {
+        temp_a2 = *var_a0;
+        var_a0 += 1;
+        temp_v0 = (temp_a2 & 0x7F) << var_a3;
+        var_a3 += 7;
+        var_t0 |= temp_v0;
+    } while (temp_a2 & 0x80);
+    if ((var_a3 < 0x20U) && (temp_a2 & 0x40)) {
+        var_t0 |= -1 << var_a3;
+    }
+    *arg1 = var_t0;
+    return var_a0;
+}

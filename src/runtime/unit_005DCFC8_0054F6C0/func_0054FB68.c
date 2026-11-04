@@ -1,0 +1,27 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_0052F2F8_arg0 {
+    char pad0[0x1C];
+    void *unk1C;
+};
+struct func_0052F2F8_temp_a0_unk4 {
+    char pad0[0x8];
+    s32 unk8;
+};
+struct func_0052F2F8_temp_a0 {
+    s32 unk0;
+    struct func_0052F2F8_temp_a0_unk4 *unk4;
+};
+
+s32 func_0052F2F8(struct func_0052F2F8_arg0 *arg0) {
+    s32 var_v1;
+    struct func_0052F2F8_temp_a0 *temp_a0;
+
+    temp_a0 = arg0->unk1C;
+    var_v1 = 0;
+    if (temp_a0->unk0 != temp_a0) {
+        var_v1 = temp_a0->unk4->unk8 != 0;
+    }
+    return var_v1;
+}

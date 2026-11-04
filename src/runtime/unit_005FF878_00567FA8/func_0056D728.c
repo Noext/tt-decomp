@@ -1,0 +1,12 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_0056D728_arg0 {
+    char pad0[0x18];
+    s32 unk18;
+};
+
+u8 func_0056D728(struct func_0056D728_arg0 *arg0, s32 arg1) {
+    return *(s32 *)(arg0->unk18 + arg1);
+}

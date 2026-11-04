@@ -1,0 +1,41 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+#include "m2c_macros.h"
+
+s32 func_004E42B0(s32);                         /* extern */
+s32 func_004E4600(void **);                     /* extern */
+s32 func_004E81D0(s8, s32);                         /* extern */
+
+struct func_004E3600_temp_v1 {
+    char pad0[0x4];
+    s32 unk4;
+    char pad8[0x12];
+    u8 unk1A;
+};
+
+void **func_004E3600(void **arg0, s8 arg1) {
+    s32 temp_v0;
+    s32 var_a0;
+    struct func_004E3600_temp_v1 *temp_v1;
+
+    temp_v1 = *arg0;
+    var_a0 = 0;
+    if (temp_v1->unk1A == 0) {
+        temp_v0 = temp_v1->unk4;
+        if (temp_v0 != 0) {
+            func_004E42B0(temp_v0);
+        }
+        var_a0 = 1;
+    }
+    if (var_a0 != 0) {
+        if (func_004E81D0(arg1, M2C_FIELD(*arg0, s32 *, 0)) == -1) {
+            temp_v1 = *arg0;
+            temp_v1->unk1A = (u8) (temp_v1->unk1A | 4);
+        }
+        if (M2C_FIELD(*arg0, s64 *, 0x10) & 0x6000) {
+            func_004E4600(arg0);
+        }
+    }
+    return arg0;
+}

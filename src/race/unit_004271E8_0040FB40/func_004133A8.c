@@ -1,0 +1,25 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+s32 func_00413078();                            /* extern */
+s32 func_00413098(s32 *);                       /* extern */
+s32 func_00413158(s32 *, s32);                      /* extern */
+s32 func_004132E0(s32 *, s32, s32);                 /* extern */
+s32 func_00413448(s32 *, s32);                  /* extern */
+s32 func_004F64C4(s32, s32, s32);               /* extern */
+
+s32 func_004133A8(s32 *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 temp_v0;
+    s32 var_s1;
+
+    func_00413078();
+    var_s1 = 0;
+    temp_v0 = func_004132E0(arg0, arg1, arg2);
+    if (temp_v0 != -1) {
+        var_s1 = 1;
+        func_004F64C4(arg3, func_00413158(arg0, temp_v0), *arg0);
+        func_00413448(arg0, temp_v0);
+    }
+    func_00413098(arg0);
+    return var_s1;
+}

@@ -1,0 +1,18 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+void GT4MC__File__getDate(s32 *, void *);
+void func_0019B7A8(s32 *, s32);
+typedef struct { u8 pad[0x30]; s32 x30; s32 *a[1]; } T;
+s32 func_001996E0(T *arg0, s32 arg1) {
+    s8 sp[0x10];
+    s32 *temp_s0;
+    s8 *e = (s8 *)arg0 + arg1 * 4; temp_s0 = *(s32 **)(e + 0x34);
+    if (*temp_s0 < 0) {
+        func_0019B7A8(temp_s0, arg0->x30);
+        GT4MC__File__getDate(temp_s0, sp);
+        return 1;
+    }
+    return 0;
+}

@@ -1,0 +1,54 @@
+typedef int s32;
+typedef short s16;
+typedef unsigned short u16;
+typedef signed char s8;
+typedef unsigned char u8;
+typedef long s64;
+typedef float f32;
+
+struct Rep {
+    s32 len;
+    s32 cap;
+    s32 ref;
+    s32 sel;
+};
+
+struct Str {
+    char *p;
+    char pad[0xC];
+};
+
+struct S00659988 {
+    const char *name;
+};
+
+extern "C" void func_0046D8E8(void);
+extern "C" void func_00472628(void);
+extern "C" s32 GSBuffer__getBufferWidth(void *);
+extern "C" void func_00471E18(s32, s32, s32, s32);
+extern "C" void func_00472130(s32, s32);
+extern "C" void func_00472528(s32, s32, s32);
+extern "C" void func_00472268(s32, s32);
+
+struct func_00104D10_arg0 {
+    char pad0[0x4];
+    s32 unk4;
+    char pad8[0x8];
+    s32 unk10;
+    s32 unk14;
+    s32 unk18;
+    s32 unk1C;
+};
+
+extern "C" void func_00104D10(s32 *arg0) {
+    func_0046D8E8();
+    func_00472628();
+    func_00471E18(0, *(s32 *)(char *)arg0, ((struct func_00104D10_arg0 *)arg0)->unk4, GSBuffer__getBufferWidth(arg0));
+    func_00472130((((struct func_00104D10_arg0 *)arg0)->unk10 + ((struct func_00104D10_arg0 *)arg0)->unk18), (((struct func_00104D10_arg0 *)arg0)->unk14 + ((struct func_00104D10_arg0 *)arg0)->unk1C));
+    func_00472528(0, 0, (((struct func_00104D10_arg0 *)arg0)->unk10 + ((struct func_00104D10_arg0 *)arg0)->unk18) - 0x1);
+    func_00472528(0x1, 0, (((struct func_00104D10_arg0 *)arg0)->unk14 + ((struct func_00104D10_arg0 *)arg0)->unk1C) - 0x1);
+    func_00472268(0x4, 0x2);
+    func_00472268(0x5, 0x2);
+    func_00472268(0x1, 0);
+    func_00472268(0x7, 0);
+}

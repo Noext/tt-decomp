@@ -1,0 +1,15 @@
+/* compiler: ee-gcc2.96-nsa-nosib */
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_00560130_arg0 {
+    char pad0[0x68];
+    f32 unk68;
+    f32 unk6C;
+};
+
+void func_00560130(struct func_00560130_arg0 *arg0, f32 fparg0, f32 fparg1) {
+    arg0->unk68 = fparg0;
+    arg0->unk6C = fparg1;
+}

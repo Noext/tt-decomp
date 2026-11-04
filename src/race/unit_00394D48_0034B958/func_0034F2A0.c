@@ -1,0 +1,15 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_0034F2A0_arg0 {
+    char pad0[0x10];
+    f32 unk10;
+};
+
+f32 func_0034F2A0(struct func_0034F2A0_arg0 *arg0, f32 fparg0) {
+    f32 temp_f0;
+
+    temp_f0 = arg0->unk10;
+    arg0->unk10 = fparg0;
+    return temp_f0;
+}

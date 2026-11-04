@@ -1,0 +1,120 @@
+# Everything the tools need to know about this game. Another game = another project.toml
+# (plus a loader in tools/loaders/ and a knowledge file); the tools themselves stay the same.
+
+[game]
+name = "Tourist Trophy (NTSC-U, SCUS-97502 v1.00)"
+serial = "SCUS-97502"
+# Short name: the WSL working directories and the linked image (tools/project.py BASENAME).
+basename = "tt"
+# CORE.TT is encrypted (Salsa20) and compressed; tools/core2elf.py turns it into this ELF once,
+# and the tools load the ELF (tools/loaders/elf.py) instead of decrypting on every run.
+executable = "orig/SCUS-97502/CORE.TT.elf"
+elf = "orig/SCUS-97502/CORE.TT.elf"
+splat_config = "config/tt.yaml"
+# tools/loaders/<loader>.py must define load(path) -> (entry, [(address, bytes), ...])
+loader = "elf"
+
+[cpu]
+# rabbitizer instruction category and assembler/objdump flags for the permuter
+category = "R5900"
+as_flags = "-EL -march=r5900 -mabi=eabi"
+objdump_arch = "mips:5900"
+# m2c target triple for the first draft of each function
+m2c_target = "mipsee-gcc-c"
+
+[compiler]
+name = "Sony ee-gcc 2.96 (2.96-ee-001003-1)"
+# Runs on Linux/WSL. {dir} is replaced by the directory below; sources are compiled from /tmp.
+dir = "~/.local/share/gt4/ee-gcc2.96"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -Iinclude"
+# The language model output is compiled as this language (file extension).
+extension = "cpp"
+
+# Other compilers a source may ask for with a marker on its first line, `/* compiler: NAME */`
+# (tools/project.py source_compiler): match.py, build.py and the CI compile that source with NAME's
+# command. ~270 functions (0x3ac140-0x5b9af0, Sony SDK code) were built by ee-gcc 2.9, which saves
+# callee-saved registers 16 bytes apart (knowledge/ee-gcc-2.96.md). `archive` is where the CI gets it.
+[compilers."ee-gcc2.9-991111"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.9-991111"
+command = "{dir}/bin/ee-gcc -c -O2 -G0 -fno-exceptions -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.9-991111.tar.xz"
+
+# The project's compiler without strict aliasing: how the game's expat was built (THIRD_PARTY.md,
+# tools/libmatch.py). Same archive as the main compiler, unpacked a second time under this name.
+[compilers."ee-gcc2.96-no-strict-aliasing"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.96-no-strict-aliasing"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-strict-aliasing -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+# The project's compiler with the SGI STL headers (include/stl, gcc 2000-10-03's libstdc++ v2, see
+# THIRD_PARTY.md) and the C-library stand-ins (include/shim) on the include path, and no implicit
+# template instantiation: the object holds only the member the source instantiates explicitly
+# (tools/stl.py). Same archive as the main compiler, unpacked a second time under this name.
+[compilers."ee-gcc2.96-stl"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.96-stl"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-strict-aliasing -fno-implicit-templates -Iinclude/stl -Iinclude/shim -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+[model]
+# Facts given to the model with every function: the compiler's habits (shared by every game built
+# with it) and this game's own idioms.
+knowledge = ["knowledge/ee-gcc-2.96.md", "knowledge/tt.md"]
+
+# Library code built with -fno-strict-aliasing AND without sibling calls: functions whose last
+# call is a jal followed by the epilogue where a `j` would be possible (found on 0x0055a2b8, a
+# struct copy between lock/unlock calls). Same archive as the main compiler, unpacked again.
+[compilers."ee-gcc2.96-nsa-nosib"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.96-nsa-nosib"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-strict-aliasing -fno-optimize-sibling-calls -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+# The game's flags without sibling calls, for translation units whose tail calls are jal + epilogue.
+[compilers."ee-gcc2.96-nosib"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.96-nosib"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-optimize-sibling-calls -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+# Code assembled with a later EE binutils, the one in Sony's ee-gcc 3.2 (2004-09-21) toolchain, while
+# the compiler stays 2.96 (tools/cc_as.sh: gcc -S, then that ee-as). That assembler expands gcc's
+# unaligned-access macros (uld/usd/ulw/usw) right half first (ldr before ldl), as all of the library
+# code around 0x5547e8+ has it, and it does not have the 2.96 gas bug that gave an indexed global's
+# lui the opcode of its load (0x001f6c58). Verified on every source that needed the old text rewrites
+# (rf_as.py, hilo_as.py, now removed): 207 of 207 compile identically; game code built with the 2.96
+# assembler does not (build/auto/as_test.py), so this is a per-object property, not a project one.
+[compilers."ee-gcc2.96-nsa-nosib-as2004"]
+dir = "~/.local/share/gt4/compilers/ee-gcc2.96-nsa-nosib"
+command = "bash {tools}/cc_as.sh \"$HOME/.local/share/gt4/compilers/ee-gcc3.2-040921/bin/ee-as\" \"{dir}/bin/ee-gcc -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-strict-aliasing -fno-optimize-sibling-calls -Iinclude\""
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+needs = { "ee-gcc3.2-040921" = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc3.2-040921.tar.xz" }
+
+[compilers."ee-gcc2.96-as2004"]
+dir = "~/.local/share/gt4/ee-gcc2.96"
+command = "bash {tools}/cc_as.sh \"$HOME/.local/share/gt4/compilers/ee-gcc3.2-040921/bin/ee-as\" \"{dir}/bin/ee-gcc -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -Iinclude\""
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+needs = { "ee-gcc3.2-040921" = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc3.2-040921.tar.xz" }
+
+# The game's flags without global common-subexpression elimination: the 0x70002000 scratchpad
+# code (around 0x4a0000-0x4a8000) keeps the base address in one register across branches and
+# calls, which only -fno-gcse reproduces (found on 0x004a0690: 23 -> 3 differing instructions).
+[compilers."ee-gcc2.96-nogcse"]
+dir = "~/.local/share/gt4/ee-gcc2.96"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-gcse -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+# EXPERIMENTAL (opus-regmap, 2026-10-10): the game's flags without the first scheduling pass
+# (sched1, which runs before register allocation): pseudo lifetimes and argument copies stay in
+# source order, so a value copied into an argument register after its last other use takes that
+# register directly. Found on 0x00484a90 (a constructor whose &member argument lives in $a2:
+# 13 -> 0 with -fno-strict-aliasing). It also matched 12 raw m2c drafts whose statement order is
+# the original's instruction order (003bc5a8 003c4008 00524920 00538068 00278630 005763b8
+# 00337918 0052f7b0/0052f7e8 00539be0 00540f38 0052f4a8) and 004a2930 (hand-written, 22 -> 0): the m2c ones may be a store-order shortcut
+# rather than the real flags; review before treating it as a real build profile.
+[compilers."ee-gcc2.96-nosched1"]
+dir = "~/.local/share/gt4/ee-gcc2.96"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-schedule-insns -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"
+
+[compilers."ee-gcc2.96-nsa-nosched1"]
+dir = "~/.local/share/gt4/ee-gcc2.96"
+command = "{dir}/bin/ee-gcc -c -B {dir}/bin/ee- -O2 -G0 -fno-exceptions -fno-strict-aliasing -fno-schedule-insns -Iinclude"
+archive = "https://github.com/decompme/compilers/releases/download/compilers/ee-gcc2.96.tar.xz"

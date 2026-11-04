@@ -1,0 +1,31 @@
+#include "types.h"
+void *func_005A4724(void *, const void *, unsigned int);
+
+struct func_003DF9E0_arg0 {
+    char pad0[0x214];
+    f32 unk214;
+    f32 unk218;
+    f32 unk21C;
+    char pad220[0x130];
+    f32 unk350;
+};
+
+f32 func_003DF9E0(struct func_003DF9E0_arg0 *arg0) {
+    f32 temp_f2;
+    f32 temp_f3;
+    f32 temp_f4;
+
+    temp_f4 = arg0->unk350;
+    if ((temp_f4 >= 0.0f) && (temp_f4 <= 1.0f)) {
+        return (arg0->unk214 * (1.0f - temp_f4)) + (arg0->unk218 * temp_f4);
+    }
+    if (temp_f4 <= 2.0f) {
+        temp_f2 = temp_f4 - 1.0f;
+        return (arg0->unk218 * (1.0f - temp_f2)) + (arg0->unk21C * temp_f2);
+    }
+    if (temp_f4 <= 3.0f) {
+        temp_f3 = temp_f4 - 2.0f;
+        return (arg0->unk21C * (1.0f - temp_f3)) + (arg0->unk214 * temp_f3);
+    }
+    return 0.0f;
+}

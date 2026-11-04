@@ -1,0 +1,15 @@
+#include "types.h"
+#define NULL 0
+void *func_005A4724(void *, const void *, unsigned int);
+
+s32 func_00301F08(void *);
+void func_00302858(s8 *arg0, s32 arg1) {
+    if (func_00301F08(arg0) != 0) {
+        s8 *p = arg0 + 0x7E4;
+        if (arg1 != 0) {
+            *p = 0x22;
+            return;
+        }
+        *p = 0;
+    }
+}

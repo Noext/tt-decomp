@@ -1,0 +1,13 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+#include "m2c_macros.h"
+
+struct func_004057E0_arg0 {
+    char pad0[0x4D8];
+    s32 unk4D8;
+};
+
+void func_004057E0(void *arg0, s16 arg1) {
+    M2C_FIELD(((((struct func_004057E0_arg0 *)arg0)->unk4D8 * 0x190) + arg0), s16 *, 0x130) = arg1;
+}

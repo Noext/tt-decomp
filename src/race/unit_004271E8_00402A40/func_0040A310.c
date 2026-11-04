@@ -1,0 +1,18 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_0040A310_arg1 {
+    char pad0[0x10A];
+    u16 unk10A;
+    u16 unk10C;
+};
+struct func_0040A310_arg2 {
+    u16 unk0;
+    u16 unk2;
+};
+
+void func_0040A310(s32 arg0, struct func_0040A310_arg1 *arg1, struct func_0040A310_arg2 *arg2) {
+    arg1->unk10A = (u16) ((s32) (arg1->unk10A * arg2->unk0) / 100);
+    arg1->unk10C = (u16) ((s32) (arg1->unk10C * arg2->unk2) / 100);
+}

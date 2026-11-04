@@ -1,0 +1,26 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_00459910_arg0 {
+    char pad0[0x4];
+    s32 unk4;
+    s32 unk8;
+    char padC[0x4];
+    s32 unk10;
+    s32 unk14;
+    char pad18[0x8];
+    s32 unk20;
+};
+
+void func_00459910(struct func_00459910_arg0 *arg0) {
+    s32 temp_v0;
+
+    if (arg0->unk20 == 0) {
+        temp_v0 = arg0->unk8 + 1;
+        arg0->unk8 = temp_v0;
+        arg0->unk10 = (s32) (arg0->unk10 + 1);
+        if (temp_v0 >= arg0->unk4) {
+            arg0->unk14 = 0;
+        }
+    }
+}

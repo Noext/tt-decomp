@@ -1,0 +1,29 @@
+typedef int s32;
+
+extern void *D_005D94A0;
+extern "C" void func_003FF420(void *, s32);
+extern "C" void func_0050E1A8(void *);
+struct VEntry_vcall_0 { short delta; short index; void (*fn)(void *, s32); };
+static inline void vcall_0(char *o, s32 a0) {
+    VEntry_vcall_0 *e = (VEntry_vcall_0 *)(*(char **)(o + 0x0) + 0x8);
+    e->fn(o + e->delta, a0);
+}
+
+struct func_004034A8_arg0 {
+    void *unk0;
+};
+
+extern "C" void func_004034A8(void *arg0, s32 arg1) {
+    ((struct func_004034A8_arg0 *)arg0)->unk0 = &D_005D94A0;
+    if ((char *)arg0 + 0x4 != 0) {
+        char *p0 = (char *)arg0 + 0x174;
+        while ((char *)arg0 + 0x4 != p0) {
+            p0 -= 0xB8;
+            vcall_0((char *)p0, 0x2);
+        }
+    }
+    func_003FF420(arg0, 0x0);
+    if ((arg1 & 0x1) != 0) {
+        return func_0050E1A8(arg0);
+    }
+}

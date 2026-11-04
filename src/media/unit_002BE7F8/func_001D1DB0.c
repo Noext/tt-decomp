@@ -1,0 +1,31 @@
+#include "types.h"
+#define NULL 0
+void *func_005A4724(void *, const void *, unsigned int);
+
+char * func_0050F0F0(void *);
+struct func_001D1DB0_arg1 {
+    char pad0[0x17C];
+    s8 *unk17C;
+};
+struct func_001D1DB0_temp_a1 {
+    char pad0[0x8];
+    s32 unk8;
+    s32 unkC;
+};
+
+s8 **func_001D1DB0(s8 **arg0, struct func_001D1DB0_arg1 *arg1) {
+    s8 *temp_v0;
+    s8 *var_a2;
+    struct func_001D1DB0_temp_a1 *temp_a1;
+
+    temp_v0 = arg1->unk17C;
+    temp_a1 = temp_v0 - 0x10;
+    var_a2 = temp_v0;
+    if (temp_a1->unkC != 0) {
+        var_a2 = func_0050F0F0(temp_a1);
+    } else {
+        temp_a1->unk8 = (s32) (temp_a1->unk8 + 1);
+    }
+    *arg0 = var_a2;
+    return arg0;
+}

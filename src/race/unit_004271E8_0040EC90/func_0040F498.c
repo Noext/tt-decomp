@@ -1,0 +1,15 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+s32 func_0040F890(s32, s32);                /* extern */
+
+s32 func_0040F498(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
+    s32 var_v0;
+
+    var_v0 = func_0040F890(0, 1);
+    if (var_v0 != 0) {
+        var_v0 = func_0040F890(1, 0) != 0;
+    }
+    return var_v0;
+}

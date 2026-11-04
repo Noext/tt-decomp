@@ -1,0 +1,11 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+s32 func_003E6F48(f32);                             /* extern */
+
+f32 func_003E5D90(f32 *arg0, f32 fparg0) {
+    f32 temp_f20;
+
+    temp_f20 = *arg0 - fparg0;
+    return (temp_f20 - ((f32) func_003E6F48(temp_f20 / 180.0f) * 180.0f)) + fparg0;
+}

@@ -1,0 +1,15 @@
+#include "types.h"
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_002ACDD0_arg0 {
+    char pad0[0x4];
+    s32 unk4;
+    s32 unk8;
+};
+
+s32 func_002ACDD0(struct func_002ACDD0_arg0 *arg0) {
+    s32 temp_v1;
+
+    temp_v1 = (s32) (arg0->unk8 - arg0->unk4) >> 2;
+    return (temp_v1 < 2) ? 1 : (temp_v1 - 1);
+}

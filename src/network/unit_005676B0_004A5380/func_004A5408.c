@@ -1,0 +1,22 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+struct func_004A5408_arg0 {
+    char pad0[0x44];
+    s32 unk44;
+    s32 unk48;
+};
+
+s32 func_004A5408(s32 arg0, s32 arg1) {
+    s32 var_s0;
+
+    var_s0 = 0;
+    if (((struct func_004A5408_arg0 *)arg0)->unk44 != 0) {
+        var_s0 = ((struct func_004A5408_arg0 *)arg0)->unk48;
+    }
+    func_004AF318((void *) arg0, 2);
+    if (var_s0 != 0) {
+        func_004A45D0(var_s0);
+    }
+}

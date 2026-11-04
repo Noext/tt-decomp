@@ -1,0 +1,35 @@
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+struct DynamicsConductorFreeRun {
+    struct RaceDisplayTimeDiffEvent * unk0;
+    char unk_4[0x90];
+    f32 unk94;
+};
+struct RaceDisplayTimeDiffEvent {
+    void * unk0;
+    void * unk4;
+    s32 unk8;
+    s32 unkC;
+    char unk_10[0x74];
+    void * unk84;
+    char unk_88[0x34];
+    f32 unkBC;
+};
+s32 func_002F04D8(s32, s32);
+s32 func_00305CB0(struct DynamicsConductorFreeRun *, s32, s32, s32, s32, s32, u8); /* extern */
+s32 func_00305F40(struct DynamicsConductorFreeRun *, s32, s32, s32); /* extern */
+
+struct func_003A2B90_temp_s2 {
+    char pad0[0x5D7];
+    u8 unk5D7;
+};
+
+void func_003A2B90(struct DynamicsConductorFreeRun *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
+    s32 temp_s2;
+
+    temp_s2 = func_002F04D8((s32) arg0, arg1);
+    func_00305F40(arg0, arg1, arg3, arg6);
+    func_00305CB0(arg0, arg1, arg2 - 1, arg3, arg5, arg6, ((struct func_003A2B90_temp_s2 *)temp_s2)->unk5D7);
+}

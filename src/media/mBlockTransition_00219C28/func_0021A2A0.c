@@ -1,0 +1,28 @@
+/* compiler: ee-gcc2.96-nosib */
+#include "types.h"
+#define NULL 0
+void *memcpy(void *, const void *, unsigned int);
+
+s32 func_0021A308();                            /* extern */
+s32 mBlockTransition__initialize_blocks(void *);                      /* extern */
+s32 func_004A45F8(s32);                             /* extern */
+
+struct func_0021A2A0_arg0 {
+    char pad0[0x30];
+    s32 unk30;
+    s32 unk34;
+    s32 unk38;
+};
+
+void func_0021A2A0(struct func_0021A2A0_arg0 *arg0) {
+    s32 temp_s1;
+    s32 temp_s2;
+
+    temp_s2 = arg0->unk30;
+    temp_s1 = arg0->unk34;
+    func_0021A308();
+    if ((temp_s2 != 0) && (temp_s1 != 0)) {
+        arg0->unk38 = func_004A45F8(temp_s2 * temp_s1 * 0x1C);
+    }
+    mBlockTransition__initialize_blocks(arg0);
+}

@@ -45,9 +45,10 @@ ps2-web-recomp's runtime (`runtime/src/`, 369 KB). They are no longer a work pla
 | Unhandled syscalls | — | 0 |
 | Missing IOP services | — | 0 |
 
-**What to do instead.** Extend ps2-web-recomp for TT: the native Linux/Windows executable (plan in
-the following section), then the TT-specific pieces (the `TT.VOL` asset container, PAL timing
-already handled, any patch the game needs).
+**What to do instead.** Extend ps2-web-recomp for TT: the native Linux/Windows executable, planned in
+[`findings/001-native-executable.md`](findings/001-native-executable.md) (SDL3 window, Win32 WebGPU
+surface, frame pacing and audio rate control, input, local ISO, memory card, packaging), then the
+TT-specific pieces (the `TT.VOL` asset container, PAL timing already handled, any patch the game needs).
 
 ---
 
